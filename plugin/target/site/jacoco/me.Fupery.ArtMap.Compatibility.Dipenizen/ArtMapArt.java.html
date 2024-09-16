@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ArtMapArt.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Compatibility.Dipenizen</a> &gt; <span class="el_source">ArtMapArt.java</span></div><h1>ArtMapArt.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Compatibility.Dipenizen;
+
+import java.sql.SQLException;
+import java.util.logging.Level;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.IO.MapArt;
+import net.aufdemrand.denizen.objects.dItem;
+import net.aufdemrand.denizencore.objects.Element;
+import net.aufdemrand.denizencore.objects.Fetchable;
+import net.aufdemrand.denizencore.objects.dObject;
+import net.aufdemrand.denizencore.tags.Attribute;
+import net.aufdemrand.denizencore.tags.TagContext;
+
+public class ArtMapArt implements dObject {
+<span class="nc" id="L16">	protected String prefix = &quot;artmapart&quot;;</span>
+	protected int artId;
+
+	/////////////////////
+	// OBJECT FETCHER
+	/////////////////
+
+	public static ArtMapArt valueOf(String string) {
+<span class="nc" id="L24">		return valueOf(string, null);</span>
+	}
+
+	@Fetchable(&quot;artmapart&quot;)
+	public static ArtMapArt valueOf(String string, TagContext context) {
+<span class="nc bnc" id="L29" title="All 2 branches missed.">		if (string == null)</span>
+<span class="nc" id="L30">			return null;</span>
+
+<span class="nc" id="L32">		string = string.replace(&quot;artmapart@&quot;, &quot;&quot;);</span>
+		try {
+<span class="nc" id="L34">			return new ArtMapArt(Integer.parseInt(string));</span>
+<span class="nc" id="L35">		} catch (IllegalArgumentException e) {</span>
+			// not a uuid so it should be a name.
+		}
+
+<span class="nc" id="L39">		return null;</span>
+	}
+
+	public static boolean matches(String arg) {
+<span class="nc" id="L43">		return arg.startsWith(&quot;artmapart@&quot;);</span>
+	}
+
+	/////////////////////
+	// STATIC CONSTRUCTORS
+	/////////////////
+<span class="nc" id="L49">	public ArtMapArt(int artId) {</span>
+<span class="nc" id="L50">		this.artId = artId;</span>
+		//ArtMap.instance().getArtDatabase().getArtwork(this.artId);
+<span class="nc" id="L52">	}</span>
+
+	/////////////////////
+	// dObject Methods
+	/////////////////
+	@Override
+	public boolean equals(Object a) {
+<span class="nc bnc" id="L59" title="All 2 branches missed.">		if (a instanceof ArtMapArt) {</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">			return ArtMapArt.class.cast(a).artId == this.artId;</span>
+		}
+<span class="nc" id="L62">		return false;</span>
+	}
+
+	@Override
+	public int hashCode() {
+<span class="nc" id="L67">		return this.artId;</span>
+	}
+
+	@Override
+	public String debug() {
+<span class="nc" id="L72">		return (this.prefix + &quot;='&lt;A&gt;&quot; + identify() + &quot;&lt;G&gt;' &quot;);</span>
+	}
+
+	@Override
+	public String getAttribute(Attribute attribute) {
+		MapArt art;
+		try {
+<span class="nc" id="L79">			art = ArtMap.instance().getArtDatabase().getArtwork(this.artId);</span>
+<span class="nc" id="L80">		} catch (SQLException e) {</span>
+<span class="nc" id="L81">			ArtMap.instance().getLogger().log(Level.SEVERE, &quot;Database error!&quot;, e);</span>
+<span class="nc" id="L82">			return &quot;Error!&quot;;</span>
+<span class="nc" id="L83">		}</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">		if(art == null) {</span>
+<span class="nc" id="L85">			return &quot;No Artwork Found!&quot;;</span>
+		}
+<span class="nc bnc" id="L87" title="All 2 branches missed.">		if (attribute.startsWith(&quot;name&quot;)) {</span>
+<span class="nc" id="L88">			return new Element(art.getTitle()).getAttribute(attribute);</span>
+		}
+<span class="nc bnc" id="L90" title="All 2 branches missed.">		if (attribute.startsWith(&quot;id&quot;)) {</span>
+<span class="nc" id="L91">			return new Element(art.getMapId()).getAttribute(attribute);</span>
+		}
+<span class="nc bnc" id="L93" title="All 2 branches missed.">		if (attribute.startsWith(&quot;date&quot;)) {</span>
+<span class="nc" id="L94">			return new Element(art.getDate()).getAttribute(attribute);</span>
+		}
+<span class="nc bnc" id="L96" title="All 2 branches missed.">		if (attribute.startsWith(&quot;id&quot;)) {</span>
+<span class="nc" id="L97">			return new Element(art.getMapId()).getAttribute(attribute);</span>
+		}
+<span class="nc bnc" id="L99" title="All 2 branches missed.">		if (attribute.startsWith(&quot;item&quot;)) {</span>
+<span class="nc" id="L100">			dItem artwork = new dItem(art.getMapItem());</span>
+<span class="nc" id="L101">			return artwork.getAttribute(attribute.fulfill(1));</span>
+		}
+<span class="nc" id="L103">		return new Element(identify()).getAttribute(attribute);</span>
+	}
+
+	@Override
+	public String getObjectType() {
+<span class="nc" id="L108">		return &quot;artmapart&quot;;</span>
+	}
+
+	@Override
+	public String getPrefix() {
+<span class="nc" id="L113">		return this.prefix;</span>
+	}
+
+	@Override
+	public String identify() {
+<span class="nc" id="L118">		return &quot;artmapart@&quot;;</span>
+	}
+
+	@Override
+	public String identifySimple() {
+<span class="nc" id="L123">		return identify();</span>
+	}
+
+	@Override
+	public boolean isUnique() {
+<span class="nc" id="L128">		return true;</span>
+	}
+
+	@Override
+	public dObject setPrefix(String prefix) {
+<span class="nc" id="L133">		this.prefix = prefix;</span>
+<span class="nc" id="L134">		return this;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

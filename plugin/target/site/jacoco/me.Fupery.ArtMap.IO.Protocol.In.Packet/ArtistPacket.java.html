@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ArtistPacket.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.IO.Protocol.In.Packet</a> &gt; <span class="el_source">ArtistPacket.java</span></div><h1>ArtistPacket.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.IO.Protocol.In.Packet;
+
+public abstract class ArtistPacket {
+
+    private final PacketType type;
+
+<span class="nc" id="L7">    protected ArtistPacket(PacketType type) {</span>
+<span class="nc" id="L8">        this.type = type;</span>
+<span class="nc" id="L9">    }</span>
+
+    public PacketType getType() {
+<span class="nc" id="L12">        return type;</span>
+    }
+
+    public static class PacketLook extends ArtistPacket {
+        private final float pitch;
+        private final float yaw;
+
+        public PacketLook(float yaw, float pitch) {
+<span class="nc" id="L20">            super(PacketType.LOOK);</span>
+<span class="nc" id="L21">            this.yaw = yaw;</span>
+<span class="nc" id="L22">            this.pitch = pitch;</span>
+<span class="nc" id="L23">        }</span>
+
+        public float getPitch() {
+<span class="nc" id="L26">            return pitch;</span>
+        }
+
+        public float getYaw() {
+<span class="nc" id="L30">            return yaw;</span>
+        }
+    }
+
+    public static class PacketArmSwing extends ArtistPacket {
+        public PacketArmSwing() {
+<span class="nc" id="L36">            super(PacketType.ARM_ANIMATION);</span>
+<span class="nc" id="L37">        }</span>
+    }
+
+    public static class PacketInteract extends ArtistPacket {
+        private final InteractType interaction;
+
+        public PacketInteract(InteractType interaction) {
+<span class="nc" id="L44">            super(PacketType.INTERACT);</span>
+<span class="nc" id="L45">            this.interaction = interaction;</span>
+<span class="nc" id="L46">        }</span>
+
+        public InteractType getInteraction() {
+<span class="nc" id="L49">            return interaction;</span>
+        }
+
+<span class="nc" id="L52">        public enum InteractType {</span>
+<span class="nc" id="L53">            INTERACT, ATTACK</span>
+        }
+    }
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

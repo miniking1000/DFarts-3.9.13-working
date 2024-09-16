@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PixelTableManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.IO</a> &gt; <span class="el_source">PixelTableManager.java</span></div><h1>PixelTableManager.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.IO;
+
+import me.Fupery.DataTables.DataTables;
+import me.Fupery.DataTables.PixelTable;
+
+import java.util.Arrays;
+
+import org.bukkit.plugin.java.JavaPlugin;
+
+public class PixelTableManager {
+    private int resolutionFactor;
+    private float[] yawBounds;
+    private Object[] pitchBounds;
+
+<span class="fc" id="L15">    private PixelTableManager(int resolutionFactor, float[] yawBounds, Object[] pitchBounds) {</span>
+<span class="fc" id="L16">        this.resolutionFactor = resolutionFactor;</span>
+<span class="fc" id="L17">        this.yawBounds = yawBounds;</span>
+<span class="fc" id="L18">        this.pitchBounds = pitchBounds;</span>
+<span class="fc" id="L19">    }</span>
+
+    public static PixelTableManager buildTables(JavaPlugin plugin) {
+        PixelTable table;
+<span class="fc" id="L23">        int mapResolutionFactor = 1;// TODO: 22/09/2016</span>
+        try {
+<span class="fc" id="L25">            table = DataTables.loadTable(mapResolutionFactor);</span>
+<span class="fc" id="L26">            return new PixelTableManager(mapResolutionFactor, table.getYawBounds(), table.getPitchBounds());</span>
+<span class="nc" id="L27">        } catch (Exception | NoClassDefFoundError | DataTables.InvalidResolutionFactorException e) {</span>
+<span class="nc" id="L28">            return null;</span>
+        }
+    }
+
+    public static PixelTableManager buildTables(JavaPlugin plugin, int resolutionFactor) {
+        PixelTable table;
+        try {
+<span class="nc" id="L35">            table = DataTables.loadTable(resolutionFactor);</span>
+<span class="nc" id="L36">            return new PixelTableManager(resolutionFactor, table.getYawBounds(), table.getPitchBounds());</span>
+<span class="nc" id="L37">        } catch (Exception | NoClassDefFoundError | DataTables.InvalidResolutionFactorException e) {</span>
+<span class="nc" id="L38">            return null;</span>
+        }
+    }
+
+    public float[] getYawBounds() {
+<span class="nc" id="L43">        return Arrays.copyOf(this.yawBounds, this.yawBounds.length);</span>
+    }
+
+    public Object[] getPitchBounds() {
+<span class="nc" id="L47">        return Arrays.copyOf(this.pitchBounds, this.pitchBounds.length);</span>
+    }
+
+    public int getResolutionFactor() {
+<span class="nc" id="L51">        return resolutionFactor;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

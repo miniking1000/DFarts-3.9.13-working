@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DatabaseConverter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.IO.Legacy</a> &gt; <span class="el_source">DatabaseConverter.java</span></div><h1>DatabaseConverter.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.IO.Legacy;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.List;
+import java.util.logging.Level;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import org.bukkit.command.CommandSender;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.Command.CommandExport.ArtworkExport;
+
+<span class="nc" id="L18">public abstract class DatabaseConverter {</span>
+
+    protected CommandSender sender;
+
+    public abstract boolean isNeeded();
+
+    public abstract boolean canBeForced();
+
+    protected abstract boolean createExport(boolean force) throws Exception;
+
+    public boolean createExport(CommandSender sender, boolean force) {
+<span class="nc" id="L29">        this.sender = sender;</span>
+        try {
+<span class="nc" id="L31">            return this.createExport(force);</span>
+<span class="nc" id="L32">        } catch (Exception e) {</span>
+<span class="nc" id="L33">            this.sender.sendMessage(&quot;Failure creating export check logs for more info.&quot;);</span>
+<span class="nc" id="L34">            ArtMap.instance().getLogger().log(Level.SEVERE, &quot;Failure creating export!&quot;,e);</span>
+<span class="nc" id="L35">            return false;</span>
+        }
+    }
+
+    protected String export(List&lt;ArtworkExport&gt; export) throws Exception {
+<span class="nc bnc" id="L40" title="All 2 branches missed.">        if(export.isEmpty()) {</span>
+<span class="nc" id="L41">            return &quot;No artwork to export.&quot;;</span>
+        }
+
+<span class="nc" id="L44">        File exportFile = File.createTempFile(&quot;conversion_&quot;, &quot;.json&quot;, ArtMap.instance().getDataFolder());</span>
+<span class="nc" id="L45">        try (FileWriter writer = new FileWriter(exportFile);) {</span>
+<span class="nc" id="L46">            Gson gson = ArtMap.instance().getGson(true);</span>
+<span class="nc" id="L47">            Type collectionType = new TypeToken&lt;List&lt;ArtworkExport&gt;&gt;() {</span>
+<span class="nc" id="L48">            }.getType();</span>
+<span class="nc" id="L49">            gson.toJson(export, collectionType, writer);</span>
+<span class="nc" id="L50">            writer.flush();</span>
+<span class="nc" id="L51">            writer.close();</span>
+<span class="nc" id="L52">            return export.size() + &quot; artworks exported to &quot; + exportFile.getName();</span>
+<span class="nc" id="L53">        } catch (IOException e) {</span>
+<span class="nc" id="L54">            ArtMap.instance().getLogger().log(Level.WARNING, &quot;Failure writing art export file.&quot;, e);</span>
+<span class="nc" id="L55">            return &quot;Failure writing art export file. Check server logs for more inforation.&quot;;</span>
+        }
+
+    }
+
+    protected void sendMessage(String msg) {
+<span class="nc" id="L61">        ArtMap.instance().getLogger().info(sender.getName() + &quot; :: &quot; + msg);</span>
+<span class="nc" id="L62">        sender.sendMessage(msg);</span>
+<span class="nc" id="L63">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

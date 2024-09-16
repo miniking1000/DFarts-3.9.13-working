@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RecipeMenu.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Menu.HelpMenu</a> &gt; <span class="el_source">RecipeMenu.java</span></div><h1>RecipeMenu.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Menu.HelpMenu;
+
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.inventory.meta.ItemMeta;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.api.Config.Lang;
+import me.Fupery.ArtMap.Menu.API.BasicMenu;
+import me.Fupery.ArtMap.Menu.API.ChildMenu;
+import me.Fupery.ArtMap.Menu.API.MenuType;
+import me.Fupery.ArtMap.Menu.Button.Button;
+import me.Fupery.ArtMap.Menu.Button.LinkedButton;
+import me.Fupery.ArtMap.Menu.Button.StaticButton;
+import me.Fupery.ArtMap.Menu.Handler.CacheableMenu;
+import me.Fupery.ArtMap.Recipe.ArtMaterial;
+import me.Fupery.ArtMap.Utils.ItemUtils;
+
+public class RecipeMenu extends BasicMenu implements ChildMenu {
+
+    private static final char LEFT_ARROW = '\u2B05';
+
+    private boolean adminMenu;
+
+    public RecipeMenu(boolean adminMenu) {
+<span class="nc" id="L32">		super(ChatColor.DARK_BLUE + Lang.MenuTitle.MENU_RECIPE.get(), new MenuType(9));</span>
+<span class="nc" id="L33">        this.adminMenu = adminMenu;</span>
+<span class="nc" id="L34">    }</span>
+
+    @Override
+    public Future&lt;Button[]&gt; getButtons() {
+<span class="nc" id="L38">        String[] back = { ChatColor.RED.toString() + ChatColor.BOLD + LEFT_ARROW };</span>
+<span class="nc bnc" id="L39" title="All 2 branches missed.">        if(ArtMap.instance().getConfiguration().DISABLE_PAINTBRUSH) {</span>
+<span class="nc" id="L40">            return CompletableFuture.completedFuture(new Button[] {</span>
+<span class="nc" id="L41">                new LinkedButton(ArtMap.instance().getMenuHandler().MENU.HELP, Material.MAGENTA_GLAZED_TERRACOTTA, back), </span>
+                new StaticButton(Material.AIR),
+<span class="nc" id="L43">                new StaticButton(ArtMap.instance().getBukkitVersion().getVersion().getSign(), Lang.Array.INFO_RECIPES.get()),</span>
+                new RecipeButton(ArtMaterial.EASEL),
+                new RecipeButton(ArtMaterial.CANVAS),
+            });
+        } else {
+<span class="nc" id="L48">            return CompletableFuture.completedFuture(new Button[] {</span>
+<span class="nc" id="L49">                new LinkedButton(ArtMap.instance().getMenuHandler().MENU.HELP, Material.MAGENTA_GLAZED_TERRACOTTA, back), </span>
+                new StaticButton(Material.AIR),
+<span class="nc" id="L51">                new StaticButton(ArtMap.instance().getBukkitVersion().getVersion().getSign(), Lang.Array.INFO_RECIPES.get()),</span>
+                new RecipeButton(ArtMaterial.EASEL),
+                new RecipeButton(ArtMaterial.CANVAS),
+            });
+        }
+    }
+
+    @Override
+    public CacheableMenu getParent(Player viewer) {
+<span class="nc" id="L60">        return ArtMap.instance().getMenuHandler().MENU.HELP.get(viewer);</span>
+    }
+
+
+    private class RecipeButton extends Button {
+
+        final ArtMaterial recipe;
+
+<span class="nc" id="L68">        public RecipeButton(ArtMaterial material) {</span>
+<span class="nc" id="L69">            super(material.getType());</span>
+<span class="nc" id="L70">            this.recipe = material;</span>
+<span class="nc" id="L71">            ItemMeta meta = material.getItem().getItemMeta();</span>
+<span class="nc" id="L72">            List&lt;String&gt; lore = meta.getLore();</span>
+<span class="nc" id="L73">			lore.add(&quot;&quot;);</span>
+<span class="nc" id="L74">			lore.add(ChatColor.GREEN + Lang.RECIPE_BUTTON.get());</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">            if (adminMenu) lore.add(lore.size(), ChatColor.GOLD + Lang.ADMIN_RECIPE.get());</span>
+<span class="nc" id="L76">            meta.setLore(lore);</span>
+<span class="nc" id="L77">            setItemMeta(meta);</span>
+<span class="nc" id="L78">        }</span>
+
+        @Override
+        public void onClick(Player player, ClickType clickType) {
+<span class="nc bnc" id="L82" title="All 2 branches missed.">            if (adminMenu) {</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">                if (clickType == ClickType.LEFT) {</span>
+<span class="nc" id="L84">                    openRecipePreview(player);</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">                } else if (clickType == ClickType.RIGHT) {</span>
+<span class="nc" id="L86">                    ArtMap.instance().getScheduler().SYNC.run(() -&gt; ItemUtils.giveItem(player, recipe.getItem()));</span>
+                }
+            } else {
+<span class="nc" id="L89">                openRecipePreview(player);</span>
+            }
+<span class="nc" id="L91">        }</span>
+
+        private void openRecipePreview(Player player) {
+<span class="nc" id="L94">            ArtMap.instance().getMenuHandler().openMenu(player, new RecipePreview(recipe));</span>
+<span class="nc" id="L95">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

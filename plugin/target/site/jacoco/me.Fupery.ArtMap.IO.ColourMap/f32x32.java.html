@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>f32x32.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.IO.ColourMap</a> &gt; <span class="el_source">f32x32.java</span></div><h1>f32x32.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.IO.ColourMap;
+
+import me.Fupery.ArtMap.IO.Database.Map;
+
+import java.io.IOException;
+
+/**
+ * Compresses 32x32 pixel maps into a byte array to be stored as a SQL BLOB
+ */
+<span class="fc" id="L10">public class f32x32 implements MapFormatter {</span>
+    private static byte[] foldMap(byte[] mapData, int magnitude) {
+<span class="fc" id="L12">        byte[] foldedData = new byte[Map.Size.STANDARD.value];</span>
+<span class="fc bfc" id="L13" title="All 2 branches covered.">        for (int x = 0; x &lt; 128; x += magnitude) {</span>
+<span class="fc bfc" id="L14" title="All 2 branches covered.">            for (int y = 0; y &lt; 128; y += magnitude) {</span>
+<span class="fc" id="L15">                foldedData[(x / magnitude) + ((y / magnitude) * 32)] = mapData[x + (y * 128)];</span>
+            }
+        }
+<span class="fc" id="L18">        return foldedData;</span>
+    }
+
+    private static byte[] unfoldMap(byte[] mapData, int magnitude) {
+<span class="nc" id="L22">        byte[] unfoldedData = new byte[Map.Size.MAX.value];</span>
+<span class="nc bnc" id="L23" title="All 2 branches missed.">        for (int x = 0; x &lt; 32; x++) {</span>
+<span class="nc bnc" id="L24" title="All 2 branches missed.">            for (int y = 0; y &lt; 32; y++) {</span>
+<span class="nc" id="L25">                int ix = x * magnitude;</span>
+<span class="nc" id="L26">                int iy = y * magnitude;</span>
+<span class="nc bnc" id="L27" title="All 2 branches missed.">                for (int px = 0; px &lt; magnitude; px++) {</span>
+<span class="nc bnc" id="L28" title="All 2 branches missed.">                    for (int py = 0; py &lt; magnitude; py++) {</span>
+<span class="nc" id="L29">                        unfoldedData[(px + ix) + ((py + iy) * 128)] = mapData[x + (y * 32)];</span>
+                    }
+                }
+            }
+        }
+<span class="nc" id="L34">        return unfoldedData;</span>
+    }
+
+    @Override
+    public byte[] generateBLOB(byte[] mapData) throws IOException {
+        byte[] compressedData;
+<span class="pc bpc" id="L40" title="1 of 2 branches missed.">        if (mapData.length == Map.Size.STANDARD.value) {</span>
+<span class="nc" id="L41">            compressedData = Compressor.compress(mapData);</span>
+<span class="pc bpc" id="L42" title="1 of 2 branches missed.">        } else if (mapData.length == Map.Size.MAX.value) {</span>
+<span class="fc" id="L43">            compressedData = Compressor.compress(foldMap(mapData, 4));</span>
+        } else {
+<span class="nc" id="L45">            throw new IOException(&quot;Invalid MapData!&quot;);</span>
+        }
+<span class="fc" id="L47">        return compressedData;</span>
+    }
+
+    @Override
+    public byte[] readBLOB(byte[] blobData) {
+<span class="nc" id="L52">        byte[] decompressedData = Compressor.decompress(blobData);</span>
+<span class="nc" id="L53">        return unfoldMap(decompressedData, 4);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

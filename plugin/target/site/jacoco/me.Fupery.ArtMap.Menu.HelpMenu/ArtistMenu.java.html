@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ArtistMenu.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Menu.HelpMenu</a> &gt; <span class="el_source">ArtistMenu.java</span></div><h1>ArtistMenu.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Menu.HelpMenu;
+
+import java.sql.SQLException;
+import java.text.MessageFormat;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.logging.Level;
+
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.inventory.meta.SkullMeta;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.api.Config.Lang;
+import me.Fupery.ArtMap.Exception.HeadFetchException;
+import me.Fupery.ArtMap.Menu.API.ChildMenu;
+import me.Fupery.ArtMap.Menu.API.ListMenu;
+import me.Fupery.ArtMap.Menu.API.SoundCompat;
+import me.Fupery.ArtMap.Menu.Button.Button;
+import me.Fupery.ArtMap.Menu.Handler.CacheableMenu;
+
+public class ArtistMenu extends ListMenu implements ChildMenu {
+
+	private final Player viewer;
+<span class="nc" id="L32">	private static boolean haveWarnedUser = false;</span>
+
+	public ArtistMenu(Player viewer) {
+<span class="nc" id="L35">		super(ChatColor.BLUE + Lang.MenuTitle.MENU_ARTIST.get(), ArtMap.instance().getMenuHandler().MENU.HELP, 0);</span>
+<span class="nc" id="L36">		this.viewer = viewer;</span>
+<span class="nc" id="L37">	}</span>
+
+	@Override
+	public CacheableMenu getParent(Player viewer) {
+<span class="nc" id="L41">		return ArtMap.instance().getMenuHandler().MENU.HELP.get(viewer);</span>
+	}
+
+	@Override
+	protected Future&lt;Button[]&gt; getListItems() {
+<span class="nc" id="L46">		FutureTask&lt;Button[]&gt; task = new FutureTask&lt;&gt; (()-&gt;{</span>
+			UUID[] artists;
+			try {
+<span class="nc" id="L49">				artists = ArtMap.instance().getArtDatabase().listArtists(this.viewer.getUniqueId());</span>
+<span class="nc" id="L50">			} catch (SQLException e) {</span>
+<span class="nc" id="L51">				ArtMap.instance().getLogger().log(Level.SEVERE, &quot;Database error!&quot;, e);</span>
+<span class="nc" id="L52">				return new Button[0];</span>
+<span class="nc" id="L53">			}</span>
+<span class="nc" id="L54">			List&lt;Button&gt; buttons = new LinkedList&lt;&gt;();</span>
+
+<span class="nc" id="L56">			int notCached = artists.length - ArtMap.instance().getHeadsCache().getCacheSize();</span>
+<span class="nc bnc" id="L57" title="All 4 branches missed.">			if (notCached &gt; 1 &amp;&amp; !haveWarnedUser) {</span>
+<span class="nc" id="L58">				this.viewer.sendMessage(MessageFormat.format(</span>
+<span class="nc" id="L59">						&quot;ArtMap: {0} artist(s) currently not cached you might see some incorrect heads until they are all loaded.&quot;, notCached));</span>
+<span class="nc" id="L60">				haveWarnedUser = true;</span>
+			}
+
+			//load the player button first
+<span class="nc" id="L64">			ArtworkListButton playerButton = null;</span>
+			try {
+<span class="nc" id="L66">				playerButton = new ArtworkListButton(viewer.getUniqueId(), true);</span>
+<span class="nc" id="L67">			} catch (HeadFetchException e) {</span>
+				//reload without head data
+				try {
+<span class="nc" id="L70">					playerButton = new ArtworkListButton(viewer.getUniqueId(), false);</span>
+<span class="nc" id="L71">				} catch (HeadFetchException e1) {</span>
+					//this one won't fail
+<span class="nc" id="L73">				}</span>
+<span class="nc" id="L74">			}</span>
+
+			// skip 0 as it is the viewer
+<span class="nc bnc" id="L77" title="All 2 branches missed.">			for (int i = 1; i &lt; artists.length; i++) {</span>
+				try {
+<span class="nc" id="L79">					buttons.add(new ArtworkListButton(artists[i], true));</span>
+<span class="nc" id="L80">				} catch (HeadFetchException e) {</span>
+					//try again with the fetch set to false as it will fail over and over
+					try {
+<span class="nc" id="L83">						buttons.add(new ArtworkListButton(artists[i], false));</span>
+<span class="nc" id="L84">					} catch (HeadFetchException e1) {</span>
+						// this one won't fail 
+<span class="nc" id="L86">					}</span>
+<span class="nc" id="L87">				}</span>
+			}
+			// sort the list
+<span class="nc" id="L90">			buttons.sort((Button o1, Button o2) -&gt; o1.getItemMeta().getDisplayName().toLowerCase()</span>
+<span class="nc" id="L91">					.compareTo(o2.getItemMeta().getDisplayName().toLowerCase()));</span>
+<span class="nc" id="L92">			buttons.add(0, playerButton); // add viewer first</span>
+<span class="nc" id="L93">			return buttons.toArray(new Button[0]);</span>
+		});
+<span class="nc" id="L95">		ArtMap.instance().getScheduler().ASYNC.run(task);</span>
+<span class="nc" id="L96">		return task;</span>
+	}
+
+	public Player getViewer() {
+<span class="nc" id="L100">		return Bukkit.getPlayer(this.viewer.getUniqueId());</span>
+	}
+
+	private ArtistMenu getMenu() {
+<span class="nc" id="L104">		return this;</span>
+	}
+
+	public class ArtworkListButton extends Button {
+
+		final UUID artist;
+		String artistName;
+		//TODO: Fix this when we rearrange the database.  Get the artist name from the database and not try and pull it off the meta
+<span class="nc" id="L112">		public ArtworkListButton(UUID artist, boolean loadHeads) throws HeadFetchException {</span>
+<span class="nc" id="L113">			super(Material.PLAYER_HEAD);</span>
+<span class="nc" id="L114">			this.artist = artist;</span>
+
+<span class="nc" id="L116">			SkullMeta meta = (SkullMeta) getItemMeta();</span>
+<span class="nc" id="L117">			this.artistName = artist.toString();</span>
+<span class="nc" id="L118">			meta.setDisplayName(artist.toString());</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">			if(loadHeads) {</span>
+<span class="nc" id="L120">				meta = ArtMap.instance().getHeadsCache().getHeadMeta(artist).orElse(meta);</span>
+<span class="nc" id="L121">				this.artistName = meta.getDisplayName();</span>
+			}
+<span class="nc" id="L123">			meta.setLore(Collections.singletonList(HelpMenu.CLICK));</span>
+<span class="nc" id="L124">			setItemMeta(meta.clone());</span>
+<span class="nc" id="L125">		}</span>
+
+		@Override
+		public void onClick(Player player, ClickType clickType) {
+<span class="nc" id="L129">			SoundCompat.UI_BUTTON_CLICK.play(player);</span>
+<span class="nc" id="L130">			ArtMap.instance().getMenuHandler().openMenu(player,</span>
+<span class="nc" id="L131">			        new ArtistArtworksMenu(getMenu(), this.artist, this.artistName, player.hasPermission(&quot;artmap.admin&quot;), 0));</span>
+<span class="nc" id="L132">		}</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

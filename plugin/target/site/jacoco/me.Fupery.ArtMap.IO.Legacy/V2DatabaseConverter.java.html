@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>V2DatabaseConverter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.IO.Legacy</a> &gt; <span class="el_source">V2DatabaseConverter.java</span></div><h1>V2DatabaseConverter.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.IO.Legacy;
+
+import me.Fupery.ArtMap.IO.ColourMap.f32x32;
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.Command.CommandExport.ArtworkExport;
+import me.Fupery.ArtMap.IO.CompressedMap;
+import me.Fupery.ArtMap.IO.Database.SQLiteDatabase;
+import me.Fupery.ArtMap.IO.Database.SQLiteTable;
+import me.Fupery.ArtMap.IO.MapArt;
+
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import java.io.File;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.logging.Level;
+
+public class V2DatabaseConverter extends DatabaseConverter {
+
+    private JavaPlugin plugin;
+
+<span class="nc" id="L29">    public V2DatabaseConverter(JavaPlugin plugin) {</span>
+<span class="nc" id="L30">        this.plugin = plugin;</span>
+<span class="nc" id="L31">    }</span>
+
+    @Override
+    public boolean isNeeded() {
+<span class="nc" id="L35">        String dbFileName = &quot;ArtMap.db&quot;;</span>
+<span class="nc" id="L36">        File databaseFile = new File(plugin.getDataFolder(), dbFileName);</span>
+<span class="nc" id="L37">        return databaseFile.exists();</span>
+    }
+
+    @Override
+    public boolean canBeForced() {
+<span class="nc" id="L42">        String dbFileName = &quot;ArtMap.db.off&quot;;</span>
+<span class="nc" id="L43">        File databaseFile = new File(plugin.getDataFolder(), dbFileName);</span>
+<span class="nc" id="L44">        return databaseFile.exists();</span>
+    }
+
+    @Override
+    public boolean createExport(boolean force) throws Exception {
+<span class="nc" id="L49">        String dbFileName = &quot;ArtMap.db&quot;;</span>
+<span class="nc bnc" id="L50" title="All 2 branches missed.">        if (force) {</span>
+<span class="nc" id="L51">            dbFileName = &quot;ArtMap.db.off&quot;;</span>
+        }
+<span class="nc" id="L53">        File databaseFile = new File(plugin.getDataFolder(), dbFileName);</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">        if (!databaseFile.exists())</span>
+<span class="nc" id="L55">            return false;</span>
+
+<span class="nc" id="L57">        sendMessage(&quot;Old 'ArtMap.db' database found! Converting to new format ...&quot;);</span>
+<span class="nc" id="L58">        sendMessage(&quot;(This may take a while, but only needs to run once)&quot;);</span>
+
+<span class="nc" id="L60">        List&lt;ArtworkExport&gt; artList = readArtworks(dbFileName);</span>
+<span class="nc" id="L61">        String message = this.export(artList);</span>
+<span class="nc" id="L62">        sendMessage(message);</span>
+
+<span class="nc bnc" id="L64" title="All 2 branches missed.">        if (dbFileName.equals(&quot;ArtMap.db&quot;)) {</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">            if (!databaseFile.renameTo(new File(plugin.getDataFolder(), dbFileName + &quot;.off&quot;))) {</span>
+<span class="nc" id="L66">                sendMessage(&quot;Failed to move old ArtMap.db to ArtMap.db.off pleae do it manually.&quot;);</span>
+<span class="nc" id="L67">                return true;</span>
+            }
+        }
+
+<span class="nc" id="L71">        return true;</span>
+    }
+
+    private List&lt;ArtworkExport&gt; readArtworks(String filename) throws SQLException {
+<span class="nc" id="L75">        List&lt;ArtworkExport&gt; artList = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L76">        OldDatabase database = new OldDatabase(plugin, filename);</span>
+<span class="nc" id="L77">        OldDatabaseTable table = new OldDatabaseTable(database);</span>
+<span class="nc" id="L78">        database.initialize(table);</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">        for (RichMapArt artwork : table.readArtworks()) {</span>
+<span class="nc" id="L80">            String title = artwork.getArt().getTitle();</span>
+<span class="nc" id="L81">            sendMessage(String.format(&quot;    Converting '%s' ...&quot;, title));</span>
+<span class="nc" id="L82">            artList.add(new ArtworkExport(artwork.getArt(), artwork.getMap()));</span>
+<span class="nc" id="L83">        }</span>
+<span class="nc" id="L84">        return artList;</span>
+    }
+
+    private static class RichMapArt {
+        private final MapArt art;
+        private final CompressedMap mapData;
+
+<span class="nc" id="L91">        RichMapArt(MapArt art, CompressedMap mapData) {</span>
+<span class="nc" id="L92">            this.art = art;</span>
+<span class="nc" id="L93">            this.mapData = mapData;</span>
+<span class="nc" id="L94">        }</span>
+
+        public MapArt getArt() {
+<span class="nc" id="L97">            return art;</span>
+        }
+
+        public CompressedMap getMap() {
+<span class="nc" id="L101">            return mapData;</span>
+        }
+    }
+
+    private static class OldDatabase extends SQLiteDatabase {
+
+        OldDatabase(JavaPlugin plugin, String filename) {
+<span class="nc" id="L108">            super(new File(plugin.getDataFolder(), filename));</span>
+<span class="nc" id="L109">        }</span>
+
+        private void initialize(OldDatabaseTable table) throws SQLException {
+<span class="nc" id="L112">            super.initialize(table);</span>
+<span class="nc" id="L113">        }</span>
+
+        @Override
+        protected Connection getConnection() {
+<span class="nc" id="L117">            return super.getConnection();</span>
+        }
+    }
+
+    private static class OldDatabaseTable extends SQLiteTable {
+
+        OldDatabaseTable(SQLiteDatabase database) {
+<span class="nc" id="L124">            super(database, &quot;artworks&quot;, &quot;SELECT * FROM artworks&quot;);</span>
+<span class="nc" id="L125">        }</span>
+
+        List&lt;RichMapArt&gt; readArtworks() throws SQLException {
+<span class="nc" id="L128">            return new QueuedQuery&lt;List&lt;RichMapArt&gt;&gt;() {</span>
+
+                protected void prepare(PreparedStatement statement) {
+<span class="nc" id="L131">                }</span>
+
+                protected List&lt;RichMapArt&gt; read(ResultSet set) throws SQLException {
+<span class="nc" id="L134">                    List&lt;RichMapArt&gt; artList = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">                    while (set.next()) {</span>
+                        try {
+<span class="nc" id="L137">                            artList.add(readArtwork(set));</span>
+<span class="nc" id="L138">                        } catch (Exception e) {</span>
+<span class="nc" id="L139">                            ArtMap.instance().getLogger().log(Level.SEVERE, &quot;Exception reading artwork!&quot;,e);</span>
+<span class="nc" id="L140">                        }</span>
+                    }
+<span class="nc" id="L142">                    return artList;</span>
+                }
+<span class="nc" id="L144">            }.execute(&quot;SELECT * FROM artworks&quot;);</span>
+        }
+
+        private RichMapArt readArtwork(ResultSet set) throws SQLException, IOException {
+<span class="nc" id="L148">            String title = set.getString(&quot;title&quot;);</span>
+<span class="nc" id="L149">            int id = set.getInt(&quot;id&quot;);</span>
+<span class="nc" id="L150">            UUID artist = UUID.fromString(set.getString(&quot;artist&quot;));</span>
+<span class="nc" id="L151">            String date = set.getString(&quot;date&quot;);</span>
+<span class="nc" id="L152">            MapArt art = new MapArt(id, title, artist, Bukkit.getOfflinePlayer(artist).getName(), date);</span>
+<span class="nc" id="L153">            byte[] map = new f32x32().readBLOB(set.getBytes(&quot;map&quot;));</span>
+<span class="nc" id="L154">            CompressedMap data = CompressedMap.compress(id, map);</span>
+<span class="nc" id="L155">            return new RichMapArt(art, data);</span>
+        }
+
+        @Override
+        protected void create() throws SQLException {
+<span class="nc" id="L160">            new QueuedQuery&lt;Boolean&gt;() {</span>
+                @Override
+                protected void prepare(PreparedStatement statement) {
+<span class="nc" id="L163">                }</span>
+
+                @Override
+                protected Boolean read(ResultSet set) throws SQLException {
+<span class="nc" id="L167">                    return set.next();</span>
+                }
+<span class="nc" id="L169">            }.execute(&quot;SELECT * FROM artworks LIMIT 1&quot;);</span>
+<span class="nc" id="L170">        }</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

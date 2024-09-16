@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PlayerCommandPreListener.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Listeners</a> &gt; <span class="el_source">PlayerCommandPreListener.java</span></div><h1>PlayerCommandPreListener.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Listeners;
+
+
+import java.util.HashSet;
+import java.util.Set;
+
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.api.Config.Lang;
+import net.md_5.bungee.api.ChatColor;
+	
+class PlayerCommandPreListener implements RegisteredListener {
+	
+<span class="nc" id="L16">	private Set&lt;String&gt; blacklist = new HashSet&lt;&gt;();</span>
+	
+<span class="nc" id="L18">	public PlayerCommandPreListener(){</span>
+<span class="nc" id="L19">		String blacklistdata = ArtMap.instance().getConfiguration().BLACKLIST;</span>
+<span class="nc bnc" id="L20" title="All 2 branches missed.">		if(blacklistdata != null){</span>
+<span class="nc" id="L21">			String[] commandarray = blacklistdata.split(&quot;,&quot;);</span>
+<span class="nc bnc" id="L22" title="All 2 branches missed.">			for (String command: commandarray) {</span>
+<span class="nc" id="L23">				blacklist.add(command.trim());</span>
+			}
+		}
+<span class="nc" id="L26">	}</span>
+	
+	@EventHandler
+	public void onCommandPre(PlayerCommandPreprocessEvent event){
+<span class="nc bnc" id="L30" title="All 2 branches missed.">		if(ArtMap.instance().getArtistHandler().getCurrentSession(event.getPlayer()) != null &amp;&amp;</span>
+<span class="nc bnc" id="L31" title="All 2 branches missed.">			ArtMap.instance().getArtistHandler().getCurrentSession(event.getPlayer()).isInArtKit()){</span>
+<span class="nc" id="L32">			String message = event.getMessage().toLowerCase();</span>
+<span class="nc bnc" id="L33" title="All 2 branches missed.">			if(message.startsWith(&quot;/&quot;)) {</span>
+<span class="nc bnc" id="L34" title="All 2 branches missed.">				for(String disallowed : this.blacklist) {</span>
+<span class="nc bnc" id="L35" title="All 2 branches missed.">					if(message.startsWith(disallowed, 1)) {</span>
+<span class="nc" id="L36">						event.setCancelled(true);</span>
+<span class="nc" id="L37">						event.getPlayer().sendMessage(Lang.PREFIX + ChatColor.RED + &quot;This command can't be used at an easel.&quot;);</span>
+					}
+<span class="nc" id="L39">				}</span>
+			}
+		}
+<span class="nc" id="L42">	}</span>
+	
+    @Override
+    public void unregister() {
+<span class="nc" id="L46">        PlayerCommandPreprocessEvent.getHandlerList().unregister(this);</span>
+<span class="nc" id="L47">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

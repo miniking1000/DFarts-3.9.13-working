@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RecipePreview.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Preview</a> &gt; <span class="el_source">RecipePreview.java</span></div><h1>RecipePreview.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Preview;
+
+import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
+import org.bukkit.inventory.Inventory;
+
+import java.util.UUID;
+
+public class RecipePreview extends TimedPreview {
+
+    private final Inventory preview;
+
+<span class="nc" id="L13">    public RecipePreview(Inventory preview) {</span>
+<span class="nc" id="L14">        this.preview = preview;</span>
+<span class="nc" id="L15">    }</span>
+
+    @Override
+    public boolean start(Player player) {
+<span class="nc" id="L19">        super.start(player);</span>
+<span class="nc" id="L20">        player.openInventory(preview);</span>
+<span class="nc" id="L21">        return true;</span>
+    }
+
+    @Override
+    public boolean end(Player player) {
+<span class="nc" id="L26">        super.end(player);</span>
+<span class="nc" id="L27">        preview.clear();</span>
+<span class="nc" id="L28">        player.closeInventory();</span>
+<span class="nc" id="L29">        return true;</span>
+    }
+
+    @Override
+    public boolean isEventAllowed(UUID player, Event event) {
+<span class="nc" id="L34">        return false;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

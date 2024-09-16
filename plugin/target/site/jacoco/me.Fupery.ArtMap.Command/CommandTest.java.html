@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CommandTest.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Command</a> &gt; <span class="el_source">CommandTest.java</span></div><h1>CommandTest.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Command;
+
+import java.util.Date;
+import java.util.UUID;
+import java.util.logging.Level;
+
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.command.CommandSender;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.api.Config.Lang;
+import me.Fupery.ArtMap.IO.CompressedMap;
+import me.Fupery.ArtMap.IO.MapArt;
+import me.Fupery.ArtMap.IO.Database.Map;
+
+class CommandTest extends AsyncCommand {
+
+    CommandTest() {
+<span class="nc" id="L20">        super(null, &quot;/art test &lt;-create&gt; &lt;count&gt;&quot;, true);</span>
+<span class="nc" id="L21">    }</span>
+
+    @Override
+    public void runCommand(CommandSender sender, String[] args, ReturnMessage msg) {
+<span class="nc bnc" id="L25" title="All 2 branches missed.">        if (!sender.hasPermission(&quot;artmap.admin&quot;)) {</span>
+<span class="nc" id="L26">            msg.message = Lang.NO_PERM.get();</span>
+<span class="nc" id="L27">            return;</span>
+        }
+
+        // args[0] is test
+<span class="nc bnc" id="L31" title="All 2 branches missed.">        if (args.length &lt; 2) {</span>
+            // TODO: need usage
+<span class="nc" id="L33">            msg.message = Lang.COMMAND_EXPORT.get();</span>
+<span class="nc" id="L34">            return;</span>
+        }
+
+<span class="nc bnc" id="L37" title="All 2 branches missed.">        switch (args[1]) {</span>
+        case &quot;-create&quot;:
+<span class="nc" id="L39">            Bukkit.getScheduler().runTaskAsynchronously(ArtMap.instance(), ()-&gt;{</span>
+<span class="nc" id="L40">                int count = Integer.parseInt(args[2]);</span>
+<span class="nc" id="L41">                String series = String.valueOf(System.currentTimeMillis());</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">                for(int i=0;i&lt;count;i++) {</span>
+                    try {
+<span class="nc bnc" id="L44" title="All 2 branches missed.">                        createArt(UUID.fromString(&quot;5dcadcf6-7070-42ab-aaf3-b60a120a6bcf&quot;), &quot;test_&quot;+series+&quot;_&quot;+i, new Date().toString(),i%100==0);</span>
+                        //Thread.sleep(2); //slow it down just a bit
+<span class="nc" id="L46">                    } catch(Exception e) {</span>
+<span class="nc" id="L47">                        System.out.println(&quot;Successfully created = &quot; + (i-1));</span>
+<span class="nc" id="L48">                        break;</span>
+<span class="nc" id="L49">                    }</span>
+                }
+<span class="nc" id="L51">            });</span>
+
+<span class="nc" id="L53">            break;</span>
+        default:
+            // TODO: need usage
+<span class="nc" id="L56">            msg.message = Lang.COMMAND_EXPORT.get();</span>
+        }
+<span class="nc" id="L58">    }</span>
+
+    private void createArt(UUID artist, String name, String date, boolean print) throws Exception {
+<span class="nc" id="L61">        Bukkit.getScheduler().runTask(ArtMap.instance(), ()-&gt;{</span>
+            try {
+<span class="nc" id="L63">                Map map = ArtMap.instance().getArtDatabase().createMap();</span>
+<span class="nc bnc" id="L64" title="All 2 branches missed.">                if(print) {</span>
+<span class="nc" id="L65">                    System.out.println(&quot;Created new Map: &quot; + map.getMapId());</span>
+                }
+<span class="nc bnc" id="L67" title="All 2 branches missed.">                if(map.getMap() == null) {</span>
+<span class="nc" id="L68">                    System.out.println(&quot;Mapvies is null! :: &quot; + map.getMapId());</span>
+<span class="nc" id="L69">                    throw new Exception(&quot;null mapaview!&quot;);</span>
+                }
+<span class="nc" id="L71">                MapArt mapArt = new MapArt(map.getMapId(), name, artist, null, date);</span>
+<span class="nc" id="L72">                CompressedMap cMap = CompressedMap.compress(map.getMap());</span>
+<span class="nc" id="L73">                ArtMap.instance().getArtDatabase().saveArtwork(mapArt, cMap);</span>
+<span class="nc" id="L74">            } catch(Exception e) {</span>
+<span class="nc" id="L75">                ArtMap.instance().getLogger().log(Level.SEVERE, &quot;Failure!&quot;, e);</span>
+<span class="nc" id="L76">            }</span>
+<span class="nc" id="L77">        });</span>
+<span class="nc" id="L78">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

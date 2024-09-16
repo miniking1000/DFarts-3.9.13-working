@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ProtocolLibReceiver.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.IO.Protocol.In</a> &gt; <span class="el_source">ProtocolLibReceiver.java</span></div><h1>ProtocolLibReceiver.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.IO.Protocol.In;
+
+import java.lang.reflect.Method;
+import java.util.logging.Level;
+
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.events.*;
+import com.comphenix.protocol.wrappers.EnumWrappers;
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.IO.Protocol.In.Packet.ArtistPacket;
+import me.Fupery.ArtMap.Painting.ArtistHandler;
+
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import static me.Fupery.ArtMap.IO.Protocol.In.Packet.ArtistPacket.PacketInteract;
+import static me.Fupery.ArtMap.IO.Protocol.In.Packet.ArtistPacket.PacketInteract.InteractType;
+
+public class ProtocolLibReceiver extends PacketReceiver {
+
+<span class="nc" id="L22">    public ProtocolLibReceiver() {</span>
+<span class="nc" id="L23">        registerListeners(ArtMap.instance());</span>
+<span class="nc" id="L24">    }</span>
+
+    private void registerListeners(JavaPlugin plugin) {
+<span class="nc" id="L27">        PacketAdapter.AdapterParameteters options = new PacketAdapter.AdapterParameteters();</span>
+<span class="nc" id="L28">        options.plugin(plugin);</span>
+<span class="nc" id="L29">        options.optionAsync();</span>
+<span class="nc" id="L30">        options.connectionSide(ConnectionSide.CLIENT_SIDE);</span>
+<span class="nc" id="L31">        options.listenerPriority(ListenerPriority.HIGH);</span>
+<span class="nc" id="L32">        options.types(PacketType.Play.Client.ARM_ANIMATION, PacketType.Play.Client.LOOK,</span>
+                PacketType.Play.Client.USE_ENTITY);
+<span class="nc" id="L34">        ProtocolLibrary.getProtocolManager().addPacketListener(new DefaultPacketAdapter(options));</span>
+<span class="nc" id="L35">    }</span>
+
+    private ArtistPacket getPacketType(PacketContainer packet) {
+<span class="nc bnc" id="L38" title="All 2 branches missed.">        if (packet.getType() == PacketType.Play.Client.LOOK) {</span>
+<span class="nc" id="L39">            float yaw = packet.getFloat().read(0);</span>
+<span class="nc" id="L40">            float pitch = packet.getFloat().read(1);</span>
+<span class="nc" id="L41">            return new ArtistPacket.PacketLook(yaw, pitch);</span>
+
+<span class="nc bnc" id="L43" title="All 2 branches missed.">        } else if (packet.getType() == PacketType.Play.Client.ARM_ANIMATION) {</span>
+<span class="nc" id="L44">            return new ArtistPacket.PacketArmSwing();</span>
+
+<span class="nc bnc" id="L46" title="All 2 branches missed.">        } else if (packet.getType() == PacketType.Play.Client.USE_ENTITY) {</span>
+            try {
+<span class="nc" id="L48">                EnumWrappers.EntityUseAction action = packet.getEntityUseActions().read(0);</span>
+<span class="nc" id="L49">            return new PacketInteract(</span>
+<span class="nc bnc" id="L50" title="All 2 branches missed.">                action == EnumWrappers.EntityUseAction.ATTACK ? InteractType.ATTACK : InteractType.INTERACT);</span>
+<span class="nc" id="L51">            } catch (Exception e) {</span>
+                //Then we must be on 1.17+
+                try {
+<span class="nc" id="L54">                    Object enumEntityUseActionObject = packet.getModifier().read(1);</span>
+<span class="nc" id="L55">                    Method method = enumEntityUseActionObject.getClass().getMethod(&quot;a&quot;);</span>
+<span class="nc" id="L56">                    method.setAccessible(true);</span>
+<span class="nc" id="L57">                    Object nmsAction = method.invoke(enumEntityUseActionObject);</span>
+<span class="nc" id="L58">                    return new PacketInteract(</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">						nmsAction.toString().equals(&quot;ATTACK&quot;) ||	// 1.17.1</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">						nmsAction.toString().equals(&quot;b&quot;) ?			// 1.17</span>
+<span class="nc" id="L61">							InteractType.ATTACK : InteractType.INTERACT</span>
+					);
+<span class="nc" id="L63">                } catch (Exception e1) {</span>
+<span class="nc" id="L64">                    ArtMap.instance().getLogger().log(Level.SEVERE, &quot;Error reading USE_ENTITY packet!&quot;, e1);</span>
+                }
+            }
+        }
+<span class="nc" id="L68">        return null;</span>
+    }
+
+    @Override
+    public void close() {
+<span class="nc" id="L73">        ProtocolLibrary.getProtocolManager().removePacketListeners(ArtMap.instance());</span>
+<span class="nc" id="L74">    }</span>
+
+    class DefaultPacketAdapter extends PacketAdapter {
+<span class="nc" id="L77">        DefaultPacketAdapter(AdapterParameteters options) {</span>
+<span class="nc" id="L78">            super(options);</span>
+<span class="nc" id="L79">        }</span>
+
+        @Override
+        public void onPacketReceiving(PacketEvent event) {
+<span class="nc" id="L83">            ArtistHandler handler = ArtMap.instance().getArtistHandler();</span>
+            try {
+<span class="nc bnc" id="L85" title="All 2 branches missed.">                if (!handler.containsPlayer(event.getPlayer()))</span>
+<span class="nc" id="L86">                    return;</span>
+<span class="nc" id="L87">                ArtistPacket packet = getPacketType(event.getPacket());</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">                if (packet == null)</span>
+<span class="nc" id="L89">                    return;</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">                if (!onPacketPlayIn(handler, event.getPlayer(), packet))</span>
+<span class="nc" id="L91">                    event.setCancelled(true);</span>
+<span class="nc" id="L92">            } catch (UnsupportedOperationException e) {</span>
+                //ProtocolLib sometimes passes a fake player here.  Do nothing if that happens.
+<span class="nc" id="L94">            }</span>
+<span class="nc" id="L95">        }</span>
+    }
+
+    @Override
+<span class="nc" id="L99">    public void injectPlayer(Player player) throws ReflectiveOperationException {}</span>
+
+    @Override
+<span class="nc" id="L102">    public void uninjectPlayer(Player player) {}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

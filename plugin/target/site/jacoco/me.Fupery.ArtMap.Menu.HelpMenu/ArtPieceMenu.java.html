@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ArtPieceMenu.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Menu.HelpMenu</a> &gt; <span class="el_source">ArtPieceMenu.java</span></div><h1>ArtPieceMenu.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Menu.HelpMenu;
+
+import java.sql.SQLException;
+import java.util.*;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.logging.Level;
+
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.MapMeta;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.api.Config.Lang;
+import me.Fupery.ArtMap.IO.MapArt;
+import me.Fupery.ArtMap.Menu.API.ChildMenu;
+import me.Fupery.ArtMap.Menu.API.ListMenu;
+import me.Fupery.ArtMap.Menu.API.SoundCompat;
+import me.Fupery.ArtMap.Menu.Button.Button;
+import me.Fupery.ArtMap.Menu.Event.MenuCloseReason;
+import me.Fupery.ArtMap.Menu.Handler.CacheableMenu;
+import me.Fupery.ArtMap.Preview.ArtPreview;
+import me.Fupery.ArtMap.Recipe.ArtItem;
+import me.Fupery.ArtMap.Utils.ItemUtils;
+import net.wesjd.anvilgui.AnvilGUI;
+
+public class ArtPieceMenu extends ListMenu implements ChildMenu {
+	private ArtistArtworksMenu parent;
+	private Player viewer;
+	private MapArt artwork;
+
+	public ArtPieceMenu(ArtistArtworksMenu parent, MapArt artwork, Player viewer) {
+<span class="nc" id="L37">		super(String.format(Lang.MenuTitle.MENU_ARTWORK.get(), artwork.getTitle()),0);</span>
+<span class="nc" id="L38">		this.parent = parent;</span>
+<span class="nc" id="L39">		this.artwork = artwork;</span>
+<span class="nc" id="L40">		this.viewer = viewer;</span>
+<span class="nc" id="L41">	}</span>
+
+	public static boolean isPreviewItem(ItemStack item) {
+<span class="nc bnc" id="L44" title="All 6 branches missed.">		return item != null &amp;&amp; item.getType() == Material.FILLED_MAP &amp;&amp; item.hasItemMeta()</span>
+<span class="nc bnc" id="L45" title="All 4 branches missed.">				&amp;&amp; item.getItemMeta().hasLore() &amp;&amp; item.getItemMeta().getLore().get(0).equals(ArtItem.PREVIEW_KEY);</span>
+	}
+
+	@Override
+	public CacheableMenu getParent(Player viewer) {
+<span class="nc" id="L50">		return parent;</span>
+	}
+
+	@Override
+	public void onMenuCloseEvent(Player viewer, MenuCloseReason reason) {
+<span class="nc bnc" id="L55" title="All 2 branches missed.">		if (reason == MenuCloseReason.SPECIAL)</span>
+<span class="nc" id="L56">			return;</span>
+<span class="nc" id="L57">		ItemStack offHand = viewer.getInventory().getItemInOffHand();</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">		if (isPreviewItem(offHand))</span>
+<span class="nc" id="L59">			viewer.getInventory().setItemInOffHand(new ItemStack(Material.AIR));	</span>
+<span class="nc" id="L60">	}</span>
+
+	@Override
+	protected Future&lt;Button[]&gt; getListItems() {
+<span class="nc" id="L64">		FutureTask&lt;Button[]&gt; task = new FutureTask&lt;&gt; (()-&gt;{</span>
+<span class="nc" id="L65">			List&lt;Button&gt; buttons = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L66">			buttons.add(new PreviewButton(this, this.artwork, viewer));</span>
+<span class="nc bnc" id="L67" title="All 4 branches missed.">			if (this.viewer.hasPermission(&quot;artmap.admin&quot;) || this.artwork.getArtist().equals(this.viewer.getUniqueId())) {</span>
+<span class="nc" id="L68">				buttons.add(new DeleteButton(this.parent, this.artwork));</span>
+<span class="nc" id="L69">				buttons.add(new RenameButton(this.parent, this.artwork));</span>
+			}
+<span class="nc" id="L71">			return buttons.toArray(new Button[0]);</span>
+		});
+<span class="nc" id="L73">		ArtMap.instance().getScheduler().SYNC.run(task);</span>
+<span class="nc" id="L74">		return task;</span>
+	}
+
+	private static class PreviewButton extends Button {
+
+		private final MapArt artwork;
+		private final ArtPieceMenu artworkMenu;
+
+		private PreviewButton(ArtPieceMenu menu, MapArt artwork, Player player) {
+<span class="nc" id="L83">			super(Material.FILLED_MAP);</span>
+<span class="nc" id="L84">			MapMeta meta = (MapMeta) artwork.getMapItem().getItemMeta();</span>
+<span class="nc" id="L85">			meta.setMapView(ArtMap.getMap(artwork.getMapId()));</span>
+<span class="nc" id="L86">			List&lt;String&gt; lore = meta.getLore();</span>
+<span class="nc" id="L87">			lore.add(HelpMenu.CLICK);</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">			if (player.hasPermission(&quot;artmap.admin&quot;)) {</span>
+<span class="nc" id="L89">				lore.add(lore.size(), ChatColor.GOLD + Lang.ADMIN_RECIPE.get());</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">			} else if (artwork.getArtistPlayer().equals(player)) {</span>
+<span class="nc" id="L91">				lore.add(ChatColor.GOLD + Lang.RECIPE_PLAYER_MAP_COPY.get());</span>
+			}
+<span class="nc" id="L93">			meta.setLore(lore);</span>
+<span class="nc" id="L94">			setItemMeta(meta);</span>
+<span class="nc" id="L95">			this.artwork = artwork;</span>
+<span class="nc" id="L96">			this.artworkMenu = menu;</span>
+<span class="nc" id="L97">		}</span>
+
+		@Override
+		public void onClick(Player player, ClickType clickType) {
+
+<span class="nc bnc" id="L102" title="All 2 branches missed.">			if (clickType == ClickType.LEFT) {</span>
+<span class="nc" id="L103">				ItemStack offHand = player.getInventory().getItemInOffHand();</span>
+<span class="nc bnc" id="L104" title="All 4 branches missed.">				if (offHand.getType() == Material.AIR || isPreviewItem(offHand)) {</span>
+<span class="nc" id="L105">					ArtMap.instance().getMenuHandler().closeMenu(player, MenuCloseReason.SPECIAL);</span>
+<span class="nc" id="L106">					ArtMap.instance().getPreviewManager().startPreview(player, new ArtPreview(artwork));</span>
+<span class="nc" id="L107">					ArtMap.instance().getMenuHandler().openMenu(player, this.artworkMenu);</span>
+				} else {
+<span class="nc" id="L109">					Lang.EMPTY_HAND_PREVIEW.send(player);</span>
+				}
+<span class="nc bnc" id="L111" title="All 2 branches missed.">			} else if (clickType == ClickType.RIGHT) {</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">				if (player.hasPermission(&quot;artmap.admin&quot;)) {</span>
+<span class="nc" id="L113">					SoundCompat.BLOCK_CLOTH_FALL.play(player);</span>
+<span class="nc" id="L114">					ArtMap.instance().getScheduler().SYNC.run(() -&gt; ItemUtils.giveItem(player, artwork.getMapItem()));</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">				} else if (artwork.getArtistPlayer().equals(player)) {</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">					if (player.getInventory().contains(Material.MAP)) {</span>
+						// remove a map from the player
+<span class="nc" id="L118">						HashMap&lt;Integer, ? extends ItemStack&gt; maps = player.getInventory().all(Material.MAP);</span>
+<span class="nc" id="L119">						ItemStack map = maps.entrySet().iterator().next().getValue();</span>
+<span class="nc" id="L120">						map.setAmount(map.getAmount() - 1);</span>
+<span class="nc" id="L121">						ArtMap.instance().getScheduler().SYNC.run(() -&gt; ItemUtils.giveItem(player, artwork.getMapItem()));</span>
+<span class="nc" id="L122">					} else {</span>
+<span class="nc" id="L123">						player.sendMessage(Lang.RECIPE_PLAYER_MAP_COPY_MISSING.get());</span>
+					}
+				} else {
+<span class="nc" id="L126">					Lang.NO_PERM.send(player);</span>
+				}
+			}
+<span class="nc" id="L129">		}</span>
+	}
+
+	private static class DeleteButton extends Button {
+
+		private final MapArt artwork;
+		private final ArtistArtworksMenu parent;
+
+		private DeleteButton(ArtistArtworksMenu parent, MapArt artwork) {
+<span class="nc" id="L138">			super(Material.REDSTONE);</span>
+<span class="nc" id="L139">			ItemMeta meta = new ItemStack(Material.REDSTONE).getItemMeta();</span>
+<span class="nc" id="L140">			meta.setDisplayName(HelpMenu.DELETE_NAME);</span>
+<span class="nc" id="L141">			List&lt;String&gt; lore = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L142">			lore.add(HelpMenu.DELETE_TEXT);</span>
+<span class="nc" id="L143">			meta.setLore(lore);</span>
+<span class="nc" id="L144">			setItemMeta(meta);</span>
+<span class="nc" id="L145">			this.artwork = artwork;</span>
+<span class="nc" id="L146">			this.parent = parent;</span>
+<span class="nc" id="L147">		}</span>
+
+		@Override
+		public void onClick(Player player, ClickType clickType) {
+
+<span class="nc bnc" id="L152" title="All 2 branches missed.">			if (clickType == ClickType.LEFT) {</span>
+<span class="nc" id="L153">				ArtMap.instance().getMenuHandler().closeMenu(player, MenuCloseReason.DONE);</span>
+
+<span class="nc" id="L155">				ArtMap.instance().getScheduler().SYNC.run(() -&gt; {</span>
+<span class="nc" id="L156">					ArtMap.instance().getMenuHandler().openMenu(player,</span>
+							new DeleteConfirmationMenu(this.parent, this.artwork, false));
+<span class="nc" id="L158">				});</span>
+			}
+<span class="nc" id="L160">		}</span>
+	}
+
+	private static class RenameButton extends Button {
+
+		private final MapArt artwork;
+		private final ArtistArtworksMenu artworkMenu;
+
+		private RenameButton(ArtistArtworksMenu menu, MapArt artwork) {
+<span class="nc" id="L169">			super(Material.WRITABLE_BOOK);</span>
+<span class="nc" id="L170">			ItemMeta meta = new ItemStack(Material.REDSTONE).getItemMeta();</span>
+<span class="nc" id="L171">			meta.setDisplayName(HelpMenu.RENAME_NAME);</span>
+<span class="nc" id="L172">			List&lt;String&gt; lore = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L173">			lore.add(HelpMenu.RENAME_TEXT);</span>
+<span class="nc" id="L174">			meta.setLore(lore);</span>
+<span class="nc" id="L175">			setItemMeta(meta);</span>
+<span class="nc" id="L176">			this.artwork = artwork;</span>
+<span class="nc" id="L177">			this.artworkMenu = menu;</span>
+<span class="nc" id="L178">		}</span>
+
+		@Override
+		public void onClick(Player player, ClickType clickType) {
+
+<span class="nc bnc" id="L183" title="All 2 branches missed.">			if (clickType == ClickType.LEFT) {</span>
+<span class="nc" id="L184">				ArtMap.instance().getMenuHandler().closeMenu(player, MenuCloseReason.DONE);</span>
+
+<span class="nc bnc" id="L186" title="All 4 branches missed.">				if (this.artwork.getArtist().equals(player.getUniqueId()) || player.hasPermission(&quot;artmap.admin&quot;)) {</span>
+<span class="nc" id="L187">					AnvilGUI.Builder gui = new AnvilGUI.Builder();</span>
+<span class="nc" id="L188">					gui.plugin(ArtMap.instance()).text(Lang.TITLE_QUESTION.get()).onClick((slot, snapshot) -&gt; {</span>
+						//ignore anything that isnt the output slot
+<span class="nc bnc" id="L190" title="All 2 branches missed.">						if(slot != AnvilGUI.Slot.OUTPUT) {</span>
+<span class="nc" id="L191">							return Collections.emptyList();</span>
+						}
+<span class="nc" id="L193">						ArtMap.instance().getScheduler().SYNC.run(() -&gt; {</span>
+							try {
+<span class="nc" id="L195">								ArtMap.instance().getArtDatabase().renameArtwork(this.artwork, snapshot.getText());</span>
+<span class="nc" id="L196">								player.sendMessage(String.format(Lang.RENAMED.get(), this.artwork.getTitle()));</span>
+<span class="nc" id="L197">								ArtMap.instance().getMenuHandler().openMenu(player, this.artworkMenu.getParent(player));</span>
+<span class="nc" id="L198">							} catch (SQLException | NoSuchFieldException | IllegalAccessException e) {</span>
+<span class="nc" id="L199">								ArtMap.instance().getLogger().log(Level.SEVERE, &quot;Rename Artwork Failure!&quot;, e);</span>
+<span class="nc" id="L200">								player.sendMessage(&quot;Error Renaming Artwork check logs.&quot;);</span>
+<span class="nc" id="L201">            					return; </span>
+<span class="nc" id="L202">							}</span>
+<span class="nc" id="L203">						});</span>
+<span class="nc" id="L204">						return Collections.singletonList(AnvilGUI.ResponseAction.close());</span>
+					});
+<span class="nc" id="L206">					gui.open(player);</span>
+<span class="nc" id="L207">				} else {</span>
+<span class="nc" id="L208">					player.sendMessage(Lang.NO_PERM.get() + &quot; &quot; + this.artwork.getArtist().equals(player.getUniqueId())</span>
+<span class="nc" id="L209">							+ &quot; &quot; + player.hasPermission(&quot;artmap.admin&quot;));</span>
+				}
+			}
+<span class="nc" id="L212">		}</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

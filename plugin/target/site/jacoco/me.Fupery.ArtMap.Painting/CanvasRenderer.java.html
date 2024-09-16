@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CanvasRenderer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Painting</a> &gt; <span class="el_source">CanvasRenderer.java</span></div><h1>CanvasRenderer.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Painting;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.IO.Database.Map;
+import me.Fupery.ArtMap.api.Painting.ICanvasRenderer;
+import me.Fupery.ArtMap.api.Painting.Pixel;
+import me.Fupery.ArtMap.IO.PixelTableManager;
+import org.bukkit.entity.Player;
+import org.bukkit.map.MapCanvas;
+import org.bukkit.map.MapRenderer;
+import org.bukkit.map.MapView;
+
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+public class CanvasRenderer extends MapRenderer implements ICanvasRenderer {
+    // todo refine producer/consumer pattern
+    private final int resolutionFactor;
+    private final int axisLength;
+    private final int maxUpdate;
+    private final Map map;
+    private byte[][] pixelBuffer;
+    private ConcurrentLinkedQueue&lt;byte[]&gt; dirtyPixels;
+    private AtomicBoolean active;
+    private Cursor cursor;
+
+<span class="nc" id="L27">    CanvasRenderer(Map map, int yawOffset) {</span>
+<span class="nc" id="L28">        this.map = map;</span>
+<span class="nc" id="L29">        PixelTableManager pixelTable = ArtMap.instance().getPixelTable();</span>
+<span class="nc bnc" id="L30" title="All 2 branches missed.">        if (pixelTable == null) {</span>
+<span class="nc" id="L31">            resolutionFactor = 0;</span>
+<span class="nc" id="L32">            axisLength = 0;</span>
+<span class="nc" id="L33">            maxUpdate = 0;</span>
+<span class="nc" id="L34">            return;</span>
+        }
+<span class="nc" id="L36">        resolutionFactor = pixelTable.getResolutionFactor();</span>
+<span class="nc" id="L37">        axisLength = 128 / resolutionFactor;</span>
+<span class="nc" id="L38">        maxUpdate = 16384;// TODO: 22/09/2016 magic value</span>
+<span class="nc" id="L39">        loadMap();</span>
+<span class="nc" id="L40">        cursor = new Cursor(yawOffset, ArtMap.instance().getPixelTable());</span>
+<span class="nc" id="L41">        active = new AtomicBoolean(true);</span>
+<span class="nc" id="L42">    }</span>
+
+    @Override
+    public void render(MapView map, MapCanvas canvas, Player player) {
+
+<span class="nc bnc" id="L47" title="All 8 branches missed.">        if (dirtyPixels == null || pixelBuffer == null || !active.get() || dirtyPixels.peek() == null) {</span>
+<span class="nc" id="L48">            return;</span>
+        }
+<span class="nc bnc" id="L50" title="All 2 branches missed.">        for (int i = 0; i &lt; maxUpdate; i++) {</span>
+<span class="nc" id="L51">            byte[] pixel = dirtyPixels.poll();</span>
+<span class="nc bnc" id="L52" title="All 2 branches missed.">            if (pixel == null) return;</span>
+<span class="nc" id="L53">            int px = pixel[0] * resolutionFactor;</span>
+<span class="nc" id="L54">            int py = pixel[1] * resolutionFactor;</span>
+
+<span class="nc bnc" id="L56" title="All 2 branches missed.">            for (int x = 0; x &lt; resolutionFactor; x++) {</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">                for (int y = 0; y &lt; resolutionFactor; y++) {</span>
+<span class="nc" id="L58">                    canvas.setPixel(px + x, py + y, pixelBuffer[pixel[0]][pixel[1]]);</span>
+                }
+            }
+        }
+<span class="nc" id="L62">    }</span>
+
+    //adds pixel at location
+    public void addPixel(int x, int y, byte colour) {
+<span class="nc" id="L66">        pixelBuffer[x][y] = colour;</span>
+<span class="nc" id="L67">        dirtyPixels.add(new byte[]{((byte) x), ((byte) y)});</span>
+<span class="nc" id="L68">    }</span>
+
+    public byte getPixel(int x, int y) {
+<span class="nc" id="L71">        return pixelBuffer[x][y];</span>
+    }
+
+    //finds the corresponding pixel for the yaw &amp; pitch clicked
+    public byte[] getCurrentPixel() {
+<span class="nc" id="L76">        byte[] pixel = new byte[2];</span>
+
+<span class="nc" id="L78">        pixel[0] = ((byte) cursor.getX());</span>
+<span class="nc" id="L79">        pixel[1] = ((byte) cursor.getY());</span>
+
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        for (byte b : pixel) {</span>
+
+<span class="nc bnc" id="L83" title="All 4 branches missed.">            if (b &gt;= axisLength || b &lt; 0) {</span>
+<span class="nc" id="L84">                return null;</span>
+            }
+        }
+<span class="nc" id="L87">        return pixel;</span>
+    }
+
+    public byte[] getMap() {
+<span class="nc" id="L91">        byte[] colours = new byte[128 * 128];</span>
+<span class="nc" id="L92">        boolean wasActive = active.compareAndSet(true, false);</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">        for (int x = 0; x &lt; (axisLength); x++) {</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">            for (int y = 0; y &lt; (axisLength); y++) {</span>
+
+<span class="nc" id="L96">                int ix = x * resolutionFactor;</span>
+<span class="nc" id="L97">                int iy = y * resolutionFactor;</span>
+
+<span class="nc bnc" id="L99" title="All 2 branches missed.">                for (int px = 0; px &lt; resolutionFactor; px++) {</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">                    for (int py = 0; py &lt; resolutionFactor; py++) {</span>
+<span class="nc" id="L101">                        colours[(px + ix) + ((py + iy) * 128)] = pixelBuffer[x][y];</span>
+                    }
+                }
+            }
+        }
+<span class="nc bnc" id="L106" title="All 2 branches missed.">        if (wasActive) active.set(true);</span>
+<span class="nc" id="L107">        return colours;</span>
+    }
+
+    public void clear() {
+<span class="nc bnc" id="L111" title="All 2 branches missed.">        for (int x = 0; x &lt; (axisLength); x++) {</span>
+<span class="nc bnc" id="L112" title="All 2 branches missed.">            for (int y = 0; y &lt; (axisLength); y++) {</span>
+<span class="nc" id="L113">                addPixel(x, y, ArtMap.instance().getDyePalette().getDefaultColour().getColour());</span>
+            }
+        }
+<span class="nc" id="L116">    }</span>
+
+    final private void loadMap() {
+<span class="nc" id="L119">        byte[] colours = map.readData();</span>
+
+<span class="nc" id="L121">        pixelBuffer = new byte[axisLength][axisLength];</span>
+<span class="nc" id="L122">        dirtyPixels = new ConcurrentLinkedQueue&lt;&gt;();</span>
+
+        int px, py;
+<span class="nc bnc" id="L125" title="All 2 branches missed.">        for (int x = 0; x &lt; 128; x++) {</span>
+
+<span class="nc bnc" id="L127" title="All 2 branches missed.">            for (int y = 0; y &lt; 128; y++) {</span>
+
+<span class="nc" id="L129">                px = x / resolutionFactor;</span>
+<span class="nc" id="L130">                py = y / resolutionFactor;</span>
+<span class="nc" id="L131">                addPixel(px, py, colours[x + (y * 128)]);</span>
+            }
+        }
+<span class="nc" id="L134">    }</span>
+
+    public void stop() {
+<span class="nc" id="L137">        active.set(false);</span>
+<span class="nc" id="L138">        dirtyPixels.clear();</span>
+<span class="nc" id="L139">        cursor = null;</span>
+<span class="nc" id="L140">    }</span>
+
+    public Pixel getPixelAt(int x, int y) {
+<span class="nc" id="L143">        return new Pixel(this, x, y, getPixel(x, y));</span>
+    }
+
+    public boolean isDirty() {
+<span class="nc bnc" id="L147" title="All 2 branches missed.">        return dirtyPixels.size() &gt; 0;</span>
+    }
+
+    public boolean isOffCanvas() {
+<span class="nc" id="L151">        return cursor.isOffCanvas();</span>
+    }
+
+    public byte[][] getPixelBuffer() {
+<span class="nc" id="L155">        return pixelBuffer.clone();</span>
+    }
+
+    void setYaw(float yaw) {
+<span class="nc" id="L159">        cursor.setYaw(yaw);</span>
+<span class="nc" id="L160">    }</span>
+
+    void setPitch(float pitch) {
+<span class="nc" id="L163">        cursor.setPitch(pitch);</span>
+<span class="nc" id="L164">    }</span>
+
+    public int getAxisLength() {
+<span class="nc" id="L167">        return axisLength;</span>
+    }
+
+    public MapView getMapView() {
+<span class="nc" id="L171">        return map.getMap();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

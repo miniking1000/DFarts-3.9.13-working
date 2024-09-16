@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PlayerCraftListener.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Listeners</a> &gt; <span class="el_source">PlayerCraftListener.java</span></div><h1>PlayerCraftListener.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Listeners;
+
+import java.sql.SQLException;
+import java.util.logging.Level;
+
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.inventory.CraftItemEvent;
+import org.bukkit.event.inventory.InventoryAction;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.CartographyInventory;
+import org.bukkit.inventory.ItemStack;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.api.Config.Lang;
+import me.Fupery.ArtMap.Exception.ArtMapException;
+import me.Fupery.ArtMap.IO.MapArt;
+import me.Fupery.ArtMap.Utils.ItemUtils;
+import me.Fupery.ArtMap.api.Utils.VersionHandler.BukkitVersion;
+
+<span class="nc" id="L23">class PlayerCraftListener implements RegisteredListener {</span>
+
+    @EventHandler
+    public void onPlayerCraftEvent(CraftItemEvent event) {
+<span class="nc" id="L27">        ItemStack result = event.getCurrentItem();</span>
+
+        // Tuinity fork sends nulls sometimes so handle it.
+<span class="nc bnc" id="L30" title="All 2 branches missed.">        if (result == null) {</span>
+<span class="nc" id="L31">            return;</span>
+        }
+        // Disallow players from copying ArtMap maps in the crafting table
+<span class="nc bnc" id="L34" title="All 2 branches missed.">        if (result.getType() == Material.FILLED_MAP) {</span>
+            MapArt art;
+            try {
+<span class="nc" id="L37">                art = ArtMap.instance().getArtDatabase().getArtwork(ItemUtils.getMapID(result).orElseThrow(()-&gt; new ArtMapException(&quot;Artwork does not have a mapview!&quot;)));</span>
+<span class="nc" id="L38">            } catch (SQLException | ArtMapException e) {</span>
+<span class="nc" id="L39">                ArtMap.instance().getLogger().log(Level.SEVERE, &quot;Database error!&quot;, e);</span>
+<span class="nc" id="L40">                event.getWhoClicked().sendMessage(&quot;Error Retrieving Artwork check logs.&quot;);</span>
+<span class="nc" id="L41">                return;</span>
+<span class="nc" id="L42">            }</span>
+<span class="nc bnc" id="L43" title="All 2 branches missed.">            if (art != null) {</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">                if (event.getWhoClicked().getUniqueId().equals(art.getArtistPlayer().getUniqueId())) {</span>
+<span class="nc" id="L45">                    Player player = (Player) event.getWhoClicked();</span>
+<span class="nc" id="L46">                    ItemStack artworkItem = art.getMapItem();</span>
+<span class="nc bnc" id="L47" title="All 2 branches missed.">                    if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {</span>
+<span class="nc" id="L48">                        onShiftClick(artworkItem, player, event);</span>
+                    } else {
+<span class="nc" id="L50">                        result.setItemMeta(artworkItem.getItemMeta());</span>
+                    }
+<span class="nc" id="L52">                } else {</span>
+<span class="nc" id="L53">                    Lang.NO_CRAFT_PERM.send(event.getWhoClicked());</span>
+<span class="nc" id="L54">                    event.setResult(Event.Result.DENY);</span>
+<span class="nc" id="L55">                    event.setCancelled(true);</span>
+                }
+            }
+        }
+<span class="nc" id="L59">    }</span>
+
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent event) {
+        // Tuinity fork sometimes throws a null even down the pipe
+<span class="nc bnc" id="L64" title="All 2 branches missed.">        if (event == null) {</span>
+<span class="nc" id="L65">            return;</span>
+        }
+        // one check this if 1.14+
+<span class="nc bnc" id="L68" title="All 2 branches missed.">        if (ArtMap.instance().getBukkitVersion().getVersion().isLessThan(BukkitVersion.v1_14)) {</span>
+<span class="nc" id="L69">            return;</span>
+        }
+        // exit if not a cartogaphy inventory
+<span class="nc bnc" id="L72" title="All 2 branches missed.">        if (!(event.getInventory() instanceof CartographyInventory)) {</span>
+<span class="nc" id="L73">            return;</span>
+        }
+        // if the result is empty there is nothing to do
+<span class="nc" id="L76">        ItemStack result = event.getCurrentItem();</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">        if (result == null) {</span>
+<span class="nc" id="L78">            return;</span>
+        }
+        // Disallow players from copying ArtMap maps in the crafting table
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        if (result.getType() == Material.FILLED_MAP) {</span>
+            MapArt art;
+            try {
+<span class="nc" id="L84">                art = ArtMap.instance().getArtDatabase().getArtwork(ItemUtils.getMapID(result).orElseThrow(()-&gt; new ArtMapException(&quot;Artwork does not have a mapview!&quot;)));</span>
+<span class="nc" id="L85">            } catch (SQLException | ArtMapException e) {</span>
+<span class="nc" id="L86">                ArtMap.instance().getLogger().log(Level.SEVERE, &quot;Database error!&quot;, e);</span>
+<span class="nc" id="L87">                event.getWhoClicked().sendMessage(&quot;Error Retrieving Artwork check logs.&quot;);</span>
+<span class="nc" id="L88">                return; </span>
+<span class="nc" id="L89">            }</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">            if (art != null) {</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">                if (event.getWhoClicked().getUniqueId().equals(art.getArtistPlayer().getUniqueId())) {</span>
+<span class="nc" id="L92">                    ItemStack artworkItem = art.getMapItem();</span>
+<span class="nc" id="L93">                    result.setItemMeta(artworkItem.getItemMeta());</span>
+<span class="nc" id="L94">                } else {</span>
+<span class="nc" id="L95">                    Lang.NO_CRAFT_PERM.send(event.getWhoClicked());</span>
+<span class="nc" id="L96">                    event.setResult(Event.Result.DENY);</span>
+<span class="nc" id="L97">                    event.setCancelled(true);</span>
+                }
+            }
+        } 
+<span class="nc" id="L101">    }</span>
+
+
+    private void onShiftClick(ItemStack artworkItem, Player player, CraftItemEvent event) {
+<span class="nc" id="L105">        event.setCancelled(true);</span>
+
+<span class="nc" id="L107">        int i = 0;</span>
+<span class="nc" id="L108">        ItemStack[] items = event.getInventory().getMatrix();</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">        for (ItemStack item : items) {</span>
+
+<span class="nc bnc" id="L111" title="All 2 branches missed.">            if (item != null) {</span>
+<span class="nc" id="L112">                i += item.getAmount();</span>
+            }
+        }
+<span class="nc" id="L115">        event.getInventory().setMatrix(new ItemStack[items.length]);</span>
+<span class="nc" id="L116">        artworkItem.setAmount(i);</span>
+<span class="nc" id="L117">        ItemUtils.giveItem(player, artworkItem);</span>
+<span class="nc" id="L118">    }</span>
+
+	@Override
+    public void unregister() {
+<span class="nc" id="L122">        CraftItemEvent.getHandlerList().unregister(this);</span>
+<span class="nc" id="L123">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

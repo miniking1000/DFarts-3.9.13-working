@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PlayerInteractEaselListener.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Listeners</a> &gt; <span class="el_source">PlayerInteractEaselListener.java</span></div><h1>PlayerInteractEaselListener.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Listeners;
+
+import org.bukkit.Bukkit;
+import org.bukkit.block.Block;
+import org.bukkit.block.Sign;
+import org.bukkit.block.sign.Side;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPhysicsEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.hanging.HangingBreakByEntityEvent;
+import org.bukkit.event.hanging.HangingBreakEvent;
+import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
+import org.bukkit.event.player.PlayerInteractAtEntityEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.api.Config.Lang;
+import me.Fupery.ArtMap.Easel.Easel;
+import me.Fupery.ArtMap.Easel.EaselEffect;
+import me.Fupery.ArtMap.Easel.EaselEvent;
+import me.Fupery.ArtMap.Easel.EaselPart;
+import me.Fupery.ArtMap.Event.PlayerOpenMenuEvent;
+import me.Fupery.ArtMap.Menu.Handler.MenuHandler;
+import me.Fupery.ArtMap.Recipe.ArtMaterial;
+import me.Fupery.ArtMap.api.Easel.ClickType;
+
+<span class="nc" id="L34">class PlayerInteractEaselListener implements RegisteredListener {</span>
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent event) {
+<span class="nc" id="L38">        Player player = event.getPlayer();</span>
+<span class="nc" id="L39">        callEaselEvent(player, event.getRightClicked(), event, isSneaking(player));</span>
+<span class="nc" id="L40">        checkPreviewing(player, event);</span>
+<span class="nc" id="L41">    }</span>
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onPlayerArmorStandManipulate(PlayerArmorStandManipulateEvent event) {
+<span class="nc" id="L45">        Player player = event.getPlayer();</span>
+<span class="nc" id="L46">        callEaselEvent(player, event.getRightClicked(), event, ClickType.LEFT_CLICK);</span>
+<span class="nc" id="L47">        checkPreviewing(player, event);</span>
+<span class="nc" id="L48">    }</span>
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
+<span class="nc" id="L52">        Player player = event.getPlayer();</span>
+<span class="nc" id="L53">        callEaselEvent(null, event.getRightClicked(), event, isSneaking(player));</span>
+<span class="nc" id="L54">        checkPreviewing(player, event);</span>
+<span class="nc" id="L55">    }</span>
+
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
+<span class="nc" id="L60">        callEaselEvent(event.getDamager(), event.getEntity(), event, ClickType.LEFT_CLICK);</span>
+<span class="nc" id="L61">    }</span>
+
+    @EventHandler
+    public void onHangingBreakByEntity(HangingBreakByEntityEvent event) {
+<span class="nc bnc" id="L65" title="All 2 branches missed.">        if (event.getCause() == HangingBreakEvent.RemoveCause.ENTITY) {</span>
+<span class="nc" id="L66">            callEaselEvent(event.getRemover(), event.getEntity(), event, ClickType.LEFT_CLICK);</span>
+        }
+<span class="nc" id="L68">    }</span>
+
+	@EventHandler
+	public void onRightClick(PlayerInteractEvent e) {
+<span class="nc" id="L72">		Player p = e.getPlayer();</span>
+<span class="nc" id="L73">		Action a = e.getAction();</span>
+
+        //prevent touching the easel sign
+<span class="nc bnc" id="L76" title="All 2 branches missed.">        if(e.getClickedBlock() != null) {</span>
+<span class="nc" id="L77">            this.checkEaselSignEvent(e.getClickedBlock(), e);</span>
+        }
+
+<span class="nc" id="L80">	}</span>
+
+    @EventHandler
+    public void onBlockBreak(BlockBreakEvent event) {
+
+<span class="nc bnc" id="L85" title="All 2 branches missed.">        if (checkEaselSignEvent(event.getBlock(), event)) {</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">            if (!checkIsPainting(event.getPlayer(), event)) {</span>
+<span class="nc" id="L87">                Lang.ActionBar.EASEL_HELP.send(event.getPlayer());</span>
+            }
+        }
+<span class="nc" id="L90">        checkIsPainting(event.getPlayer(), event);</span>
+<span class="nc" id="L91">    }</span>
+
+    @EventHandler
+    public void onBlockPhysics(BlockPhysicsEvent event) {
+<span class="nc" id="L95">        checkEaselSignEvent(event.getBlock(), event);</span>
+<span class="nc" id="L96">    }</span>
+
+    private void callEaselEvent(Entity clicker, Entity clicked, Cancellable event, ClickType click) {
+<span class="nc" id="L99">        EaselPart part = EaselPart.getPartType(clicked);</span>
+<span class="nc bnc" id="L100" title="All 6 branches missed.">        if (part == null || part == EaselPart.SEAT || part == EaselPart.MARKER) return;</span>
+<span class="nc" id="L101">        Easel easel = Easel.getEasel(clicked.getLocation(), part);</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">        if (easel == null) return;</span>
+
+<span class="nc" id="L104">        event.setCancelled(true);</span>
+
+<span class="nc bnc" id="L106" title="All 2 branches missed.">        if (!(clicker instanceof Player)) return;</span>
+<span class="nc" id="L107">        Player player = (Player) clicker;</span>
+
+<span class="nc bnc" id="L109" title="All 2 branches missed.">        boolean interactionAllowed = (click == ClickType.SHIFT_RIGHT_CLICK) ?</span>
+<span class="nc" id="L110">                ArtMap.instance().getCompatManager().checkBuildAllowed(player, clicked.getLocation()) :</span>
+<span class="nc" id="L111">                ArtMap.instance().getCompatManager().checkInteractAllowed(player, clicked, click);</span>
+
+<span class="nc bnc" id="L113" title="All 2 branches missed.">        if (!interactionAllowed) {</span>
+<span class="nc" id="L114">            Lang.ActionBar.NO_PERM_ACTION.send(player);</span>
+<span class="nc" id="L115">            easel.playEffect(EaselEffect.USE_DENIED);</span>
+<span class="nc" id="L116">            return;</span>
+        }
+<span class="nc bnc" id="L118" title="All 2 branches missed.">        if (!checkIsPainting(player, event)) new EaselEvent(easel, click, player).callEvent();</span>
+<span class="nc" id="L119">    }</span>
+
+    private ClickType isSneaking(Player player) {
+<span class="nc bnc" id="L122" title="All 2 branches missed.">        return (player.isSneaking()) ? ClickType.SHIFT_RIGHT_CLICK :</span>
+<span class="nc" id="L123">                ClickType.RIGHT_CLICK;</span>
+    }
+
+    private boolean checkIsPainting(Player player, Cancellable event) {
+<span class="nc bnc" id="L127" title="All 4 branches missed.">		if (player.isInsideVehicle() &amp;&amp; ArtMap.instance().getArtistHandler().containsPlayer(player)) {</span>
+<span class="nc" id="L128">            event.setCancelled(true);</span>
+<span class="nc" id="L129">            return true;</span>
+        }
+<span class="nc" id="L131">        return false;</span>
+    }
+
+    private void checkPreviewing(Player player, Cancellable event) {
+<span class="nc bnc" id="L135" title="All 2 branches missed.">        if (ArtMap.instance().getPreviewManager().endPreview(player)) event.setCancelled(true);</span>
+<span class="nc" id="L136">    }</span>
+
+    /** Check if the event is interacting with a easel sign.  Cancel the event if it is  */
+    private boolean checkEaselSignEvent(Block block, Cancellable event) {
+<span class="nc bnc" id="L140" title="All 2 branches missed.">        if (block.getType() == ArtMap.instance().getBukkitVersion().getVersion().getWallSign()) {</span>
+<span class="nc" id="L141">            Sign sign = ((Sign) block.getState());</span>
+
+<span class="nc bnc" id="L143" title="All 2 branches missed.">            if (sign.getSide(Side.FRONT).getLine(3).equals(EaselPart.ARBITRARY_SIGN_ID)) {</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">                if (ArtMap.instance().getEasels().containsKey(block.getLocation())</span>
+<span class="nc bnc" id="L145" title="All 2 branches missed.">                        || Easel.checkForEasel(block.getLocation())) {</span>
+<span class="nc" id="L146">                    event.setCancelled(true);</span>
+<span class="nc" id="L147">                    return true;</span>
+                }
+            }
+        }
+<span class="nc" id="L151">        return false;</span>
+    }
+
+	@Override
+    public void unregister() {
+<span class="nc" id="L156">        PlayerInteractAtEntityEvent.getHandlerList().unregister(this);</span>
+<span class="nc" id="L157">        PlayerArmorStandManipulateEvent.getHandlerList().unregister(this);</span>
+<span class="nc" id="L158">        PlayerInteractEntityEvent.getHandlerList().unregister(this);</span>
+<span class="nc" id="L159">        EntityDamageByEntityEvent.getHandlerList().unregister(this);</span>
+<span class="nc" id="L160">        HangingBreakByEntityEvent.getHandlerList().unregister(this);</span>
+<span class="nc" id="L161">        BlockBreakEvent.getHandlerList().unregister(this);</span>
+<span class="nc" id="L162">        BlockPhysicsEvent.getHandlerList().unregister(this);</span>
+<span class="nc" id="L163">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

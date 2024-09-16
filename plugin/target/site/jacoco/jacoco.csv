@@ -1,0 +1,208 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+ArtMap,me.Fupery.ArtMap.IO.Database,Database.new Runnable() {...},34,0,2,0,8,0,3,0,2,0
+ArtMap,me.Fupery.ArtMap.IO.Database,Database,202,326,15,19,50,60,15,25,7,16
+ArtMap,me.Fupery.ArtMap.IO.Database,Map,235,0,14,0,54,0,25,0,18,0
+ArtMap,me.Fupery.ArtMap.IO.Database,SQLiteDatabase,56,71,3,7,10,16,2,7,0,4
+ArtMap,me.Fupery.ArtMap.IO.Database,ArtTable.new SQLiteTable.QueuedQuery() {...},39,0,2,0,7,0,4,0,3,0
+ArtMap,me.Fupery.ArtMap.IO.Database,ArtTable.new SQLiteTable.QueuedQuery() {...},30,0,2,0,6,0,4,0,3,0
+ArtMap,me.Fupery.ArtMap.IO.Database,ArtTable.new SQLiteTable.QueuedQuery() {...},47,0,4,0,9,0,5,0,3,0
+ArtMap,me.Fupery.ArtMap.IO.Database,ArtTable.new SQLiteTable.QueuedQuery() {...},30,0,2,0,6,0,4,0,3,0
+ArtMap,me.Fupery.ArtMap.IO.Database,ArtTable,84,263,3,5,11,36,7,14,4,13
+ArtMap,me.Fupery.ArtMap.IO.Database,ArtTable.new SQLiteTable.QueuedStatement() {...},23,0,0,0,4,0,2,0,2,0
+ArtMap,me.Fupery.ArtMap.IO.Database,ArtTable.new SQLiteTable.QueuedStatement() {...},36,0,0,0,6,0,2,0,2,0
+ArtMap,me.Fupery.ArtMap.IO.Database,MapTable,82,101,0,0,11,14,4,6,4,6
+ArtMap,me.Fupery.ArtMap.IO.Database,ArtTable.new SQLiteTable.QueuedQuery() {...},27,0,2,0,4,0,4,0,3,0
+ArtMap,me.Fupery.ArtMap.IO.Database,SQLiteTable.QueuedStatement,88,0,0,0,27,0,4,0,4,0
+ArtMap,me.Fupery.ArtMap.IO.Database,ArtTable.new SQLiteTable.QueuedQuery() {...},26,0,2,0,4,0,4,0,3,0
+ArtMap,me.Fupery.ArtMap.IO.Database,ArtTable.new SQLiteTable.QueuedQuery() {...},47,0,2,0,7,0,4,0,3,0
+ArtMap,me.Fupery.ArtMap.IO.Database,ArtTable.new SQLiteTable.QueuedQuery() {...},56,0,2,0,8,0,4,0,3,0
+ArtMap,me.Fupery.ArtMap.IO.Database,MapTable.new SQLiteTable.QueuedQuery() {...},26,0,2,0,4,0,4,0,3,0
+ArtMap,me.Fupery.ArtMap.IO.Database,MapTable.new SQLiteTable.QueuedQuery() {...},40,0,2,0,8,0,4,0,3,0
+ArtMap,me.Fupery.ArtMap.IO.Database,MapTable.new SQLiteTable.QueuedStatement() {...},67,0,2,0,13,0,3,0,2,0
+ArtMap,me.Fupery.ArtMap.IO.Database,MapTable.new SQLiteTable.QueuedQuery() {...},32,0,2,0,6,0,4,0,3,0
+ArtMap,me.Fupery.ArtMap.IO.Database,SQLiteTable.QueuedQuery,73,0,4,0,25,0,5,0,3,0
+ArtMap,me.Fupery.ArtMap.IO.Database,ArtTable.new SQLiteTable.QueuedStatement() {...},16,0,0,0,3,0,2,0,2,0
+ArtMap,me.Fupery.ArtMap.IO.Database,MapTable.new SQLiteTable.QueuedStatement() {...},16,0,0,0,3,0,2,0,2,0
+ArtMap,me.Fupery.ArtMap.IO.Database,MapTable.new SQLiteTable.QueuedStatement() {...},24,0,0,0,4,0,2,0,2,0
+ArtMap,me.Fupery.ArtMap.IO.Database,MapTable.new SQLiteTable.QueuedStatement() {...},30,0,0,0,5,0,2,0,2,0
+ArtMap,me.Fupery.ArtMap.IO.Database,MapTable.new SQLiteTable.QueuedQuery() {...},20,0,0,0,4,0,3,0,3,0
+ArtMap,me.Fupery.ArtMap.IO.Database,ArtTable.new SQLiteTable.QueuedQuery() {...},21,0,0,0,4,0,3,0,3,0
+ArtMap,me.Fupery.ArtMap.IO.Database,ArtTable.new SQLiteTable.QueuedQuery() {...},20,0,0,0,4,0,3,0,3,0
+ArtMap,me.Fupery.ArtMap.IO.Database,ArtTable.new SQLiteTable.QueuedStatement() {...},16,0,0,0,3,0,2,0,2,0
+ArtMap,me.Fupery.ArtMap.IO.Database,MapTable.new SQLiteTable.QueuedStatement() {...},30,0,0,0,5,0,2,0,2,0
+ArtMap,me.Fupery.ArtMap.IO.Database,ArtTable.new SQLiteTable.QueuedStatement() {...},25,0,0,0,4,0,2,0,2,0
+ArtMap,me.Fupery.ArtMap.IO.Database,SQLiteTable,0,33,0,0,0,10,0,2,0,2
+ArtMap,me.Fupery.ArtMap.IO.Database,Map.Size,28,0,0,0,6,0,3,0,3,0
+ArtMap,me.Fupery.ArtMap,ArtMap,314,67,16,0,79,20,30,7,22,7
+ArtMap,me.Fupery.ArtMap.Compatibility.Dipenizen,ArtMapArt,179,0,18,0,43,0,23,0,14,0
+ArtMap,me.Fupery.ArtMap.Compatibility.Dipenizen,ArtMapArtist,177,0,12,0,39,0,20,0,14,0
+ArtMap,me.Fupery.ArtMap.Compatibility.Dipenizen,ArtMapArtists,172,0,12,0,35,0,20,0,14,0
+ArtMap,me.Fupery.ArtMap.IO.Protocol,ProtocolHandler,25,0,0,0,9,0,1,0,1,0
+ArtMap,me.Fupery.ArtMap.Preview,PreviewManager,124,0,10,0,27,0,16,0,11,0
+ArtMap,me.Fupery.ArtMap.Preview,ArtPreview,78,0,6,0,21,0,7,0,4,0
+ArtMap,me.Fupery.ArtMap.Preview,TimedPreview.Timeout,12,0,0,0,5,0,2,0,2,0
+ArtMap,me.Fupery.ArtMap.Preview,TimedPreview,24,0,0,0,5,0,3,0,3,0
+ArtMap,me.Fupery.ArtMap.Preview,RecipePreview,30,0,0,0,11,0,4,0,4,0
+ArtMap,me.Fupery.ArtMap.Heads,HeadsCache,702,0,55,0,162,0,50,0,21,0
+ArtMap,me.Fupery.ArtMap.Heads,HeadsCache.HeadCacheResponeType,27,0,0,0,5,0,1,0,1,0
+ArtMap,me.Fupery.ArtMap.Heads,HeadsCache.new TypeToken() {...},6,0,0,0,1,0,1,0,1,0
+ArtMap,me.Fupery.ArtMap.Heads,HeadsCache.new TypeToken() {...},6,0,0,0,1,0,1,0,1,0
+ArtMap,me.Fupery.ArtMap.IO,PixelTableManager,35,26,0,0,9,8,4,2,4,2
+ArtMap,me.Fupery.ArtMap.IO,CompressedMap,14,60,2,0,1,9,2,5,1,5
+ArtMap,me.Fupery.ArtMap.IO,MapId,0,16,0,0,0,6,0,3,0,3
+ArtMap,me.Fupery.ArtMap.IO,TitleFilter,80,0,16,0,14,0,12,0,4,0
+ArtMap,me.Fupery.ArtMap.IO,MapArt,94,122,14,8,9,20,15,14,6,12
+ArtMap,me.Fupery.ArtMap.IO,YamlReader,75,0,8,0,17,0,9,0,5,0
+ArtMap,me.Fupery.ArtMap.Menu.Handler,MenuHandler.MenuList,36,0,0,0,6,0,1,0,1,0
+ArtMap,me.Fupery.ArtMap.Menu.Handler,ConditionalMenuFactory,41,0,2,0,6,0,3,0,2,0
+ArtMap,me.Fupery.ArtMap.Menu.Handler,MenuHandler,183,0,18,0,34,0,17,0,8,0
+ArtMap,me.Fupery.ArtMap.Menu.Handler,StaticMenuFactory,29,0,4,0,7,0,4,0,2,0
+ArtMap,me.Fupery.ArtMap.Menu.Handler,DynamicMenuFactory,11,0,0,0,4,0,2,0,2,0
+ArtMap,me.Fupery.ArtMap.Menu.Handler,CacheableMenu,236,0,18,0,48,0,21,0,12,0
+ArtMap,me.Fupery.ArtMap.Menu.Handler,MenuHandler.MenuList.new ConditionalMenuFactory.ConditionalGenerator() {...},20,0,0,0,4,0,4,0,4,0
+ArtMap,me.Fupery.ArtMap.Command,CommandSave,165,0,10,0,38,0,9,0,4,0
+ArtMap,me.Fupery.ArtMap.Command,CommandDelete,91,0,10,0,21,0,7,0,2,0
+ArtMap,me.Fupery.ArtMap.Command,CommandImport.new TypeToken() {...},6,0,0,0,1,0,1,0,1,0
+ArtMap,me.Fupery.ArtMap.Command,CommandTest,179,0,14,0,37,0,12,0,5,0
+ArtMap,me.Fupery.ArtMap.Command,CommandExport.new TypeToken() {...},6,0,0,0,1,0,1,0,1,0
+ArtMap,me.Fupery.ArtMap.Command,CommandExport,374,0,32,0,91,0,19,0,2,0
+ArtMap,me.Fupery.ArtMap.Command,CommandPreview,112,0,10,0,28,0,8,0,3,0
+ArtMap,me.Fupery.ArtMap.Command,Search,488,0,24,0,72,0,16,0,4,0
+ArtMap,me.Fupery.ArtMap.Command,AsyncCommand,74,0,12,0,18,0,9,0,3,0
+ArtMap,me.Fupery.ArtMap.Command,Repair,353,0,31,0,84,0,22,0,6,0
+ArtMap,me.Fupery.ArtMap.Command,CommandImport,320,0,27,0,85,0,23,0,8,0
+ArtMap,me.Fupery.ArtMap.Command,ReturnMessage,15,0,0,0,6,0,2,0,2,0
+ArtMap,me.Fupery.ArtMap.Command,CommandExport.ArtworkExport,214,0,10,0,37,0,12,0,7,0
+ArtMap,me.Fupery.ArtMap.Command,CommandHandler.new AsyncCommand() {...},50,0,0,0,11,0,2,0,2,0
+ArtMap,me.Fupery.ArtMap.Command,CommandHandler.new AsyncCommand() {...},249,0,24,0,45,0,15,0,3,0
+ArtMap,me.Fupery.ArtMap.Command,CommandHandler.new AsyncCommand() {...},56,0,4,0,13,0,5,0,3,0
+ArtMap,me.Fupery.ArtMap.Command,CommandConvert,90,0,18,0,24,0,11,0,2,0
+ArtMap,me.Fupery.ArtMap.Command,Page,74,0,6,0,26,0,7,0,4,0
+ArtMap,me.Fupery.ArtMap.Command,CommandHandler.1.new MapRenderer() {...},48,0,8,0,10,0,6,0,2,0
+ArtMap,me.Fupery.ArtMap.Command,CommandClear,62,0,4,0,21,0,5,0,3,0
+ArtMap,me.Fupery.ArtMap.Command,CommandHandler,184,89,6,14,25,17,6,7,2,1
+ArtMap,me.Fupery.ArtMap.Easel,Easel,566,0,56,0,120,0,52,0,24,0
+ArtMap,me.Fupery.ArtMap.Easel,EaselEvent,366,0,30,0,89,0,22,0,6,0
+ArtMap,me.Fupery.ArtMap.Easel,Canvas.CanvasCopy,29,0,0,0,5,0,3,0,3,0
+ArtMap,me.Fupery.ArtMap.Easel,Easel.WeakEntity,164,0,22,0,32,0,19,0,8,0
+ArtMap,me.Fupery.ArtMap.Easel,Canvas,189,0,20,0,33,0,17,0,7,0
+ArtMap,me.Fupery.ArtMap.Easel,EaselEffect,120,0,0,0,29,0,12,0,12,0
+ArtMap,me.Fupery.ArtMap.Easel,EaselPart,387,0,37,0,101,0,35,0,11,0
+ArtMap,me.Fupery.ArtMap.IO.Protocol.In.Packet,ArtistPacket.PacketInteract.InteractType,15,0,0,0,2,0,1,0,1,0
+ArtMap,me.Fupery.ArtMap.IO.Protocol.In.Packet,ArtistPacket,9,0,0,0,4,0,2,0,2,0
+ArtMap,me.Fupery.ArtMap.IO.Protocol.In.Packet,PacketType,87,0,4,0,15,0,5,0,3,0
+ArtMap,me.Fupery.ArtMap.IO.Protocol.In.Packet,ArtistPacket.PacketInteract,10,0,0,0,4,0,2,0,2,0
+ArtMap,me.Fupery.ArtMap.IO.Protocol.In.Packet,ArtistPacket.PacketLook,16,0,0,0,6,0,3,0,3,0
+ArtMap,me.Fupery.ArtMap.IO.Protocol.In.Packet,ArtistPacket.PacketArmSwing,4,0,0,0,2,0,1,0,1,0
+ArtMap,me.Fupery.ArtMap.IO.Protocol.In,ProtocolLibReceiver,156,0,12,0,37,0,12,0,6,0
+ArtMap,me.Fupery.ArtMap.IO.Protocol.In,ProtocolLibReceiver.DefaultPacketAdapter,39,0,6,0,14,0,5,0,2,0
+ArtMap,me.Fupery.ArtMap.IO.Protocol.In,PacketReceiver,8,0,0,0,2,0,2,0,2,0
+ArtMap,me.Fupery.ArtMap.Menu.Event,MenuCloseReason,70,0,0,0,13,0,3,0,3,0
+ArtMap,me.Fupery.ArtMap.Menu.Event,MenuEvent.MenuCloseEvent,21,0,0,0,7,0,3,0,3,0
+ArtMap,me.Fupery.ArtMap.Menu.Event,MenuEvent,15,0,0,0,6,0,3,0,3,0
+ArtMap,me.Fupery.ArtMap.Menu.Event,MenuEvent.MenuInteractEvent,18,0,0,0,6,0,3,0,3,0
+ArtMap,me.Fupery.ArtMap.Menu.Event,MenuListener,168,0,22,0,41,0,19,0,8,0
+ArtMap,me.Fupery.ArtMap.Menu.Button,StaticButton,31,0,0,0,11,0,5,0,5,0
+ArtMap,me.Fupery.ArtMap.Menu.Button,NestedMenuButton,34,0,0,0,12,0,4,0,4,0
+ArtMap,me.Fupery.ArtMap.Menu.Button,LinkedButton,36,0,0,0,12,0,4,0,4,0
+ArtMap,me.Fupery.ArtMap.Menu.Button,CloseButton,17,0,0,0,5,0,2,0,2,0
+ArtMap,me.Fupery.ArtMap.Menu.Button,Button,97,0,12,0,26,0,11,0,5,0
+ArtMap,me.Fupery.ArtMap.Compatibility,iDisguiseCompat,52,0,4,0,11,0,5,0,3,0
+ArtMap,me.Fupery.ArtMap.Compatibility,DenizenCompat,112,0,10,0,25,0,9,0,4,0
+ArtMap,me.Fupery.ArtMap.Compatibility,CompatibilityManager,656,0,50,0,103,0,38,0,13,0
+ArtMap,me.Fupery.ArtMap.Compatibility,VanillaReflectionHandler,32,0,0,0,7,0,3,0,3,0
+ArtMap,me.Fupery.ArtMap.Recipe,ArtItem,242,0,44,0,40,0,27,0,5,0
+ArtMap,me.Fupery.ArtMap.Recipe,ArtItem.ArtworkItem,77,0,0,0,8,0,1,0,1,0
+ArtMap,me.Fupery.ArtMap.Recipe,ArtMaterial,264,0,6,0,40,0,12,0,9,0
+ArtMap,me.Fupery.ArtMap.Recipe,ArtItem.CopyArtworkItem,77,0,0,0,8,0,1,0,1,0
+ArtMap,me.Fupery.ArtMap.Recipe,Ingredient.WrappedItem,18,0,0,0,6,0,4,0,4,0
+ArtMap,me.Fupery.ArtMap.Recipe,ArtItem.InProgressArtworkItem,63,0,0,0,8,0,1,0,1,0
+ArtMap,me.Fupery.ArtMap.Recipe,RecipeLoader,309,0,38,0,54,0,25,0,6,0
+ArtMap,me.Fupery.ArtMap.Recipe,SimpleRecipe.Shapeless,101,0,6,0,20,0,10,0,7,0
+ArtMap,me.Fupery.ArtMap.Recipe,Ingredient.WrappedMaterial,23,0,0,0,7,0,4,0,4,0
+ArtMap,me.Fupery.ArtMap.Recipe,SimpleRecipe.Shaped,182,0,14,0,27,0,14,0,7,0
+ArtMap,me.Fupery.ArtMap.Recipe,ArtItem.KitItem,6,0,0,0,2,0,1,0,1,0
+ArtMap,me.Fupery.ArtMap.Recipe,SimpleRecipe,9,0,0,0,4,0,2,0,2,0
+ArtMap,me.Fupery.ArtMap.Recipe,RecipeLoader.InvalidRecipeException,15,0,0,0,2,0,1,0,1,0
+ArtMap,me.Fupery.ArtMap.Recipe,RecipeLoader.InvalidMaterialKeyException,17,0,0,0,2,0,1,0,1,0
+ArtMap,me.Fupery.ArtMap.Recipe,SimpleRecipe.RecipeException,4,0,0,0,2,0,1,0,1,0
+ArtMap,me.Fupery.ArtMap.Recipe,ArtItem.CraftableItem,22,0,0,0,6,0,1,0,1,0
+ArtMap,me.Fupery.ArtMap.Recipe,CustomItem,411,0,28,0,84,0,37,0,23,0
+ArtMap,me.Fupery.ArtMap.Painting.Brushes,Fill,271,0,32,0,44,0,22,0,6,0
+ArtMap,me.Fupery.ArtMap.Painting.Brushes,Flip,126,0,14,0,20,0,11,0,4,0
+ArtMap,me.Fupery.ArtMap.Painting.Brushes,Dropper,318,0,38,0,64,0,26,0,7,0
+ArtMap,me.Fupery.ArtMap.Painting.Brushes,BigBrush,359,0,46,0,67,0,29,0,6,0
+ArtMap,me.Fupery.ArtMap.Painting.Brushes,GridBrush,350,0,46,0,68,0,29,0,6,0
+ArtMap,me.Fupery.ArtMap.Painting.Brushes,Dye,298,0,38,0,62,0,26,0,7,0
+ArtMap,me.Fupery.ArtMap.Utils,ChunkLocation,42,0,6,0,10,0,8,0,5,0
+ArtMap,me.Fupery.ArtMap.Utils,Scheduler.BukkitFuture,68,0,0,0,19,0,6,0,6,0
+ArtMap,me.Fupery.ArtMap.Utils,Scheduler.new Scheduler.TaskScheduler() {...},33,0,0,0,4,0,4,0,4,0
+ArtMap,me.Fupery.ArtMap.Utils,Scheduler.new Scheduler.TaskScheduler() {...},33,0,0,0,4,0,4,0,4,0
+ArtMap,me.Fupery.ArtMap.Utils,Reflection,363,0,6,0,73,0,13,0,10,0
+ArtMap,me.Fupery.ArtMap.Utils,Scheduler.TaskHandler,75,0,6,0,12,0,7,0,4,0
+ArtMap,me.Fupery.ArtMap.Utils,ItemUtils,123,0,26,0,30,0,18,0,5,0
+ArtMap,me.Fupery.ArtMap.Utils,Scheduler,61,18,6,0,19,5,6,1,3,1
+ArtMap,me.Fupery.ArtMap.Utils,LocationHelper,125,0,11,0,21,0,15,0,5,0
+ArtMap,me.Fupery.ArtMap.IO.Legacy,V2DatabaseConverter.OldDatabase,21,0,0,0,5,0,3,0,3,0
+ArtMap,me.Fupery.ArtMap.IO.Legacy,DatabaseConverter,102,0,2,0,24,0,5,0,4,0
+ArtMap,me.Fupery.ArtMap.IO.Legacy,V2DatabaseConverter.OldDatabaseTable,68,0,0,0,15,0,4,0,4,0
+ArtMap,me.Fupery.ArtMap.IO.Legacy,V2DatabaseConverter.RichMapArt,15,0,0,0,6,0,3,0,3,0
+ArtMap,me.Fupery.ArtMap.IO.Legacy,V2DatabaseConverter.OldDatabaseTable.new SQLiteTable.QueuedQuery() {...},12,0,0,0,3,0,3,0,3,0
+ArtMap,me.Fupery.ArtMap.IO.Legacy,V2DatabaseConverter.OldDatabaseTable.new SQLiteTable.QueuedQuery() {...},33,0,2,0,9,0,4,0,3,0
+ArtMap,me.Fupery.ArtMap.IO.Legacy,DatabaseConverter.new TypeToken() {...},6,0,0,0,1,0,1,0,1,0
+ArtMap,me.Fupery.ArtMap.IO.Legacy,V2DatabaseConverter,153,0,10,0,35,0,10,0,5,0
+ArtMap,me.Fupery.ArtMap.IO.Legacy,FlatDatabaseConverter,252,0,18,0,57,0,14,0,5,0
+ArtMap,me.Fupery.ArtMap.Menu.API,ListMenu,218,0,18,0,48,0,18,0,9,0
+ArtMap,me.Fupery.ArtMap.Menu.API,ListMenu.PageButton,49,0,4,0,7,0,4,0,2,0
+ArtMap,me.Fupery.ArtMap.Menu.API,BasicMenu,14,0,0,0,8,0,6,0,6,0
+ArtMap,me.Fupery.ArtMap.Menu.API,MenuType,46,0,6,0,12,0,7,0,4,0
+ArtMap,me.Fupery.ArtMap.Menu.API,SoundCompat,2840,0,4,0,482,0,9,0,7,0
+ArtMap,me.Fupery.ArtMap.Menu.API,SoundCompat.SupportedVersion,21,0,0,0,2,0,1,0,1,0
+ArtMap,me.Fupery.ArtMap.Menu.API,TextPagination,285,0,14,0,48,0,13,0,6,0
+ArtMap,me.Fupery.ArtMap.Listeners,PlayerCraftListener,217,0,28,0,60,0,21,0,7,0
+ArtMap,me.Fupery.ArtMap.Listeners,PlayerQuitListener,114,0,14,0,37,0,15,0,8,0
+ArtMap,me.Fupery.ArtMap.Listeners,ChunkUnloadListener,60,0,10,0,14,0,9,0,4,0
+ArtMap,me.Fupery.ArtMap.Listeners,InventoryInteractListener,219,0,50,0,52,0,34,0,9,0
+ArtMap,me.Fupery.ArtMap.Listeners,MapInitializeListener,54,0,2,0,17,0,5,0,4,0
+ArtMap,me.Fupery.ArtMap.Listeners,PlayerInteractListener,314,0,60,0,80,0,38,0,8,0
+ArtMap,me.Fupery.ArtMap.Listeners,PlayerJoinEventListener,41,0,4,0,8,0,6,0,4,0
+ArtMap,me.Fupery.ArtMap.Listeners,PlayerDismountListener,52,0,6,0,17,0,6,0,3,0
+ArtMap,me.Fupery.ArtMap.Listeners,PlayerCommandPreListener,99,0,14,0,20,0,10,0,3,0
+ArtMap,me.Fupery.ArtMap.Listeners,PlayerInteractEaselListener,278,0,40,0,70,0,35,0,15,0
+ArtMap,me.Fupery.ArtMap.Listeners,PlayerSwapHandListener,17,0,2,0,6,0,4,0,3,0
+ArtMap,me.Fupery.ArtMap.Listeners,EventManager,110,0,2,0,18,0,3,0,2,0
+ArtMap,me.Fupery.ArtMap.Menu.HelpMenu,ArtistMenu,180,0,6,0,39,0,11,0,8,0
+ArtMap,me.Fupery.ArtMap.Menu.HelpMenu,ToolMenu,128,0,0,0,13,0,3,0,3,0
+ArtMap,me.Fupery.ArtMap.Menu.HelpMenu,DeleteConfirmationMenu,68,0,10,0,11,0,9,0,4,0
+ArtMap,me.Fupery.ArtMap.Menu.HelpMenu,ArtistArtworksMenu,200,0,26,0,37,0,20,0,7,0
+ArtMap,me.Fupery.ArtMap.Menu.HelpMenu,ArtistArtworksMenu.PreviewButton,110,0,10,0,23,0,8,0,3,0
+ArtMap,me.Fupery.ArtMap.Menu.HelpMenu,RecipeMenu.RecipeButton,100,0,8,0,20,0,8,0,4,0
+ArtMap,me.Fupery.ArtMap.Menu.HelpMenu,ArtPieceMenu.RenameButton,157,0,8,0,33,0,8,0,4,0
+ArtMap,me.Fupery.ArtMap.Menu.HelpMenu,ArtistMenu.ArtworkListButton,67,0,2,0,16,0,3,0,2,0
+ArtMap,me.Fupery.ArtMap.Menu.HelpMenu,DeleteConfirmationMenu.AcceptButton,104,0,6,0,26,0,6,0,3,0
+ArtMap,me.Fupery.ArtMap.Menu.HelpMenu,DyeMenu.DyeButton,31,0,4,0,8,0,5,0,3,0
+ArtMap,me.Fupery.ArtMap.Menu.HelpMenu,ArtPieceMenu,142,0,18,0,23,0,15,0,6,0
+ArtMap,me.Fupery.ArtMap.Menu.HelpMenu,ArtPieceMenu.DeleteButton,64,0,2,0,16,0,4,0,3,0
+ArtMap,me.Fupery.ArtMap.Menu.HelpMenu,HelpMenu,137,0,0,0,15,0,3,0,3,0
+ArtMap,me.Fupery.ArtMap.Menu.HelpMenu,RecipePreview,68,0,4,0,13,0,6,0,4,0
+ArtMap,me.Fupery.ArtMap.Menu.HelpMenu,ArtPieceMenu.PreviewButton,188,0,18,0,35,0,13,0,4,0
+ArtMap,me.Fupery.ArtMap.Menu.HelpMenu,RecipeMenu,149,0,2,0,12,0,4,0,3,0
+ArtMap,me.Fupery.ArtMap.Menu.HelpMenu,DyeMenu,61,0,2,0,8,0,3,0,2,0
+ArtMap,me.Fupery.ArtMap.Painting,ArtSession,800,0,64,0,169,0,57,0,25,0
+ArtMap,me.Fupery.ArtMap.Painting,CanvasRenderer,413,0,44,0,75,0,39,0,17,0
+ArtMap,me.Fupery.ArtMap.Painting,Brush.BrushAction,15,0,0,0,2,0,1,0,1,0
+ArtMap,me.Fupery.ArtMap.Painting,ArtistHandler,413,0,38,0,96,0,36,0,17,0
+ArtMap,me.Fupery.ArtMap.Painting,Brush,50,0,0,0,14,0,9,0,9,0
+ArtMap,me.Fupery.ArtMap.Painting,Cursor,309,0,38,0,63,0,32,0,13,0
+ArtMap,me.Fupery.ArtMap.Painting,GenericMapRenderer,41,9,10,0,6,3,6,1,1,1
+ArtMap,me.Fupery.ArtMap.Painting,CachedPixel,54,0,8,0,12,0,10,0,6,0
+ArtMap,me.Fupery.ArtMap.Event,PlayerMountEaselEvent,29,0,0,0,11,0,7,0,7,0
+ArtMap,me.Fupery.ArtMap.Event,PlayerOpenMenuEvent,13,0,0,0,5,0,4,0,4,0
+ArtMap,me.Fupery.ArtMap.Event,PlayerCraftArtMaterialEvent,61,0,0,0,19,0,11,0,11,0
+ArtMap,me.Fupery.ArtMap.IO.ColourMap,Compressor,52,18,2,0,15,6,3,1,2,1
+ArtMap,me.Fupery.ArtMap.IO.ColourMap,f32x32,76,65,10,6,13,10,8,5,2,3
+ArtMap,me.Fupery.ArtMap.Exception,ArtMapException,5,4,0,0,2,2,1,1,1,1
+ArtMap,me.Fupery.ArtMap.Exception,PermissionException,5,4,0,0,2,2,1,1,1,1
+ArtMap,me.Fupery.ArtMap.Exception,ArtMapSQLException,9,0,0,0,4,0,2,0,2,0
+ArtMap,me.Fupery.ArtMap.Exception,HeadFetchException,9,0,0,0,4,0,2,0,2,0
+ArtMap,me.Fupery.ArtMap.Exception,DuplicateArtworkException,5,4,0,0,2,2,1,1,1,1

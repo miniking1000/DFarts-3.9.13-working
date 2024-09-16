@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ArtMapArtists.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Compatibility.Dipenizen</a> &gt; <span class="el_source">ArtMapArtists.java</span></div><h1>ArtMapArtists.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Compatibility.Dipenizen;
+
+import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.UUID;
+import java.util.logging.Level;
+
+import org.bukkit.Bukkit;
+
+import me.Fupery.ArtMap.ArtMap;
+import net.aufdemrand.denizencore.objects.Element;
+import net.aufdemrand.denizencore.objects.Fetchable;
+import net.aufdemrand.denizencore.objects.dList;
+import net.aufdemrand.denizencore.objects.dObject;
+import net.aufdemrand.denizencore.tags.Attribute;
+import net.aufdemrand.denizencore.tags.TagContext;
+
+public class ArtMapArtists implements dObject {
+
+<span class="nc" id="L20">	protected String prefix = &quot;artmapartists&quot;;</span>
+	protected UUID[] artists;
+
+	/////////////////////
+	// OBJECT FETCHER
+	/////////////////
+
+	public static ArtMapArtists valueOf(String string) {
+<span class="nc" id="L28">		return valueOf(string, null);</span>
+	}
+
+	@Fetchable(&quot;artmapartists&quot;)
+	public static ArtMapArtists valueOf(String string, TagContext context) {
+<span class="nc bnc" id="L33" title="All 2 branches missed.">		if (string == null)</span>
+<span class="nc" id="L34">			return null;</span>
+
+		//string = string.replace(&quot;artmapartists@&quot;, &quot;&quot;);
+		try {
+<span class="nc" id="L38">			return new ArtMapArtists(ArtMap.instance().getArtDatabase().listArtists());</span>
+<span class="nc" id="L39">		} catch (SQLException e) {</span>
+<span class="nc" id="L40">			ArtMap.instance().getLogger().log(Level.SEVERE, &quot;Database error!&quot;, e);</span>
+<span class="nc" id="L41">			return null;</span>
+		}
+	}
+	
+	public static boolean matches(String arg) {
+<span class="nc" id="L46">		return arg.startsWith(&quot;artmapartists@&quot;);</span>
+	}
+
+	/////////////////////
+	// STATIC CONSTRUCTORS
+	/////////////////
+<span class="nc" id="L52">	public ArtMapArtists(UUID[] artists) {</span>
+<span class="nc" id="L53">		this.artists = Arrays.copyOf(artists, artists.length);</span>
+<span class="nc" id="L54">	}</span>
+
+	/////////////////////
+	// dObject Methods
+	/////////////////
+	@Override
+	public boolean equals(Object a) {
+<span class="nc bnc" id="L61" title="All 2 branches missed.">		if (a instanceof ArtMapArtists) {</span>
+<span class="nc" id="L62">			return Arrays.equals(ArtMapArtists.class.cast(a).artists,this.artists);</span>
+		}
+<span class="nc" id="L64">		return false;</span>
+	}
+
+	@Override
+	public int hashCode() {
+<span class="nc" id="L69">		return Arrays.hashCode(this.artists);</span>
+	}
+
+	@Override
+	public String debug() {
+<span class="nc" id="L74">		return (this.prefix + &quot;='&lt;A&gt;&quot; + identify() + &quot;&lt;G&gt;' &quot;);</span>
+	}
+
+	@Override
+	public String getAttribute(Attribute attribute) {
+<span class="nc bnc" id="L79" title="All 2 branches missed.">		if (attribute.startsWith(&quot;artistsbyname&quot;)) {</span>
+<span class="nc" id="L80">			dList artistList = new dList();</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">			for (UUID id : this.artists) {</span>
+<span class="nc" id="L82">				artistList.add(Bukkit.getPlayer(id).getName());</span>
+			}
+<span class="nc" id="L84">			return artistList.getAttribute(attribute.fulfill(1));</span>
+<span class="nc bnc" id="L85" title="All 2 branches missed.">		} else if (attribute.startsWith(&quot;artists&quot;)) {</span>
+<span class="nc" id="L86">			dList artistList = new dList();</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">			for (UUID id : this.artists)</span>
+<span class="nc" id="L88">				artistList.add(id.toString());</span>
+
+<span class="nc" id="L90">			return artistList.getAttribute(attribute.fulfill(1));</span>
+		}
+<span class="nc" id="L92">		return new Element(identify()).getAttribute(attribute);</span>
+	}
+
+	@Override
+	public String getObjectType() {
+<span class="nc" id="L97">		return &quot;ArtMapArtists&quot;;</span>
+	}
+
+	@Override
+	public String getPrefix() {
+<span class="nc" id="L102">		return this.prefix;</span>
+	}
+
+	@Override
+	public String identify() {
+<span class="nc" id="L107">		return &quot;artmapartists@&quot;;</span>
+	}
+
+	@Override
+	public String identifySimple() {
+<span class="nc" id="L112">		return identify();</span>
+	}
+
+	@Override
+	public boolean isUnique() {
+<span class="nc" id="L117">		return true;</span>
+	}
+
+	@Override
+	public dObject setPrefix(String prefix) {
+<span class="nc" id="L122">		this.prefix = prefix;</span>
+<span class="nc" id="L123">		return this;</span>
+	}
+	
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

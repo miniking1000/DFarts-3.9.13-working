@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FlatDatabaseConverter.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.IO.Legacy</a> &gt; <span class="el_source">FlatDatabaseConverter.java</span></div><h1>FlatDatabaseConverter.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.IO.Legacy;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.Command.CommandExport.ArtworkExport;
+import me.Fupery.ArtMap.IO.Database.Map;
+import me.Fupery.ArtMap.IO.MapArt;
+
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.map.MapView;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import java.io.File;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.logging.Level;
+
+public class FlatDatabaseConverter extends DatabaseConverter {
+
+    private JavaPlugin plugin;
+
+<span class="nc" id="L28">    public FlatDatabaseConverter(JavaPlugin plugin) {</span>
+<span class="nc" id="L29">        this.plugin = plugin;</span>
+<span class="nc" id="L30">    }</span>
+
+    @Override
+    public boolean isNeeded() {
+<span class="nc" id="L34">        String dbFileName = &quot;mapList.yml&quot;;</span>
+<span class="nc" id="L35">        File databaseFile = new File(plugin.getDataFolder(), dbFileName);</span>
+<span class="nc" id="L36">        return databaseFile.exists();</span>
+    }
+
+    @Override
+    public boolean canBeForced() {
+<span class="nc" id="L41">        String dbFileName = &quot;mapList.yml.off&quot;;</span>
+<span class="nc" id="L42">        File databaseFile = new File(plugin.getDataFolder(), dbFileName);</span>
+<span class="nc" id="L43">        return databaseFile.exists();</span>
+    }
+
+    @Override
+    public boolean createExport(boolean force) throws Exception {
+<span class="nc" id="L48">        String dbFileName = &quot;mapList.yml&quot;;</span>
+<span class="nc bnc" id="L49" title="All 2 branches missed.">        if (force) {</span>
+<span class="nc" id="L50">            dbFileName = &quot;mapList.yml.off&quot;;</span>
+        }
+<span class="nc" id="L52">        File databaseFile = new File(plugin.getDataFolder(), dbFileName);</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">        if (!databaseFile.exists())</span>
+<span class="nc" id="L54">            return false;</span>
+<span class="nc" id="L55">        sendMessage(&quot;Old 'mapList.yml' database found! Converting to new format ...&quot;);</span>
+<span class="nc" id="L56">        sendMessage(&quot;(This may take a while, but only needs to run once)&quot;);</span>
+<span class="nc" id="L57">        List&lt;ArtworkExport&gt; artList = readArtworks(databaseFile);</span>
+<span class="nc" id="L58">        String msg = this.export(artList);</span>
+<span class="nc" id="L59">        sendMessage(msg);</span>
+
+<span class="nc" id="L61">        File disabledDatabaseFile = new File(plugin.getDataFolder(), dbFileName + &quot;.off&quot;);</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">        if (!databaseFile.renameTo(disabledDatabaseFile)) {</span>
+<span class="nc" id="L63">            sendMessage(&quot;Error disabling mapList.yml! Delete this file manually.&quot;);</span>
+<span class="nc" id="L64">            return false;</span>
+        }
+<span class="nc" id="L66">        return true;</span>
+    }
+
+    private List&lt;ArtworkExport&gt; readArtworks(File databaseFile) {
+<span class="nc" id="L70">        List&lt;ArtworkExport&gt; artList = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L71">        FileConfiguration database = YamlConfiguration.loadConfiguration(databaseFile);</span>
+<span class="nc" id="L72">        ConfigurationSection artworks = database.getConfigurationSection(&quot;artworks&quot;);</span>
+
+<span class="nc bnc" id="L74" title="All 2 branches missed.">        if (artworks == null)</span>
+<span class="nc" id="L75">            return artList;</span>
+
+<span class="nc bnc" id="L77" title="All 2 branches missed.">        for (String title : artworks.getKeys(false)) {</span>
+<span class="nc" id="L78">            ConfigurationSection map = artworks.getConfigurationSection(title);</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">            if (map != null) {</span>
+<span class="nc" id="L80">                int mapIDValue = map.getInt(&quot;mapID&quot;);</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">                OfflinePlayer player = (map.contains(&quot;artist&quot;))</span>
+<span class="nc" id="L82">                        ? Bukkit.getOfflinePlayer(UUID.fromString(map.getString(&quot;artist&quot;)))</span>
+<span class="nc" id="L83">                        : null;</span>
+<span class="nc" id="L84">                String date = map.getString(&quot;date&quot;);</span>
+<span class="nc" id="L85">                MapView mapView = ArtMap.getMap(mapIDValue);</span>
+<span class="nc bnc" id="L86" title="All 2 branches missed.">                if (mapView == null) {</span>
+<span class="nc" id="L87">                    sendMessage(String.format(&quot;    Ignoring '%s' (failed to access map data) ...&quot;, title));</span>
+<span class="nc" id="L88">                    continue;</span>
+                }
+<span class="nc" id="L90">                MapArt artwork = new MapArt(mapIDValue, title, player.getUniqueId(), player.getName(), date);</span>
+                try {
+<span class="nc bnc" id="L92" title="All 2 branches missed.">                    if (ArtMap.instance().getArtDatabase().containsArtwork(artwork, true)) {</span>
+<span class="nc" id="L93">                        sendMessage(String.format(&quot;    Ignoring '%s' (already exists in database) ...&quot;, title));</span>
+                    } else {
+<span class="nc" id="L95">                        sendMessage(String.format(&quot;    Converting '%s' ...&quot;, title));</span>
+                        try {
+<span class="nc" id="L97">                            artList.add(new ArtworkExport(artwork, new Map(mapView).compress()));</span>
+<span class="nc" id="L98">                        } catch (IOException e) {</span>
+<span class="nc" id="L99">                            sendMessage(String.format(&quot;    Failure converting '%s'!!!&quot;, title));</span>
+<span class="nc" id="L100">                            ArtMap.instance().getLogger().log(Level.SEVERE, &quot;Failure converting: &quot; + title, e);</span>
+<span class="nc" id="L101">                        }</span>
+                    }
+<span class="nc" id="L103">                } catch (SQLException e) {</span>
+<span class="nc" id="L104">                    sendMessage(&quot;Error accessing DB!&quot;);</span>
+<span class="nc" id="L105">                    ArtMap.instance().getLogger().log(Level.SEVERE,&quot;Error accessing DB!&quot;,e);</span>
+<span class="nc" id="L106">                }</span>
+            }
+<span class="nc" id="L108">        }</span>
+<span class="nc" id="L109">        return artList;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

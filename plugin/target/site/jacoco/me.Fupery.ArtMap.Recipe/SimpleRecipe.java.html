@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SimpleRecipe.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Recipe</a> &gt; <span class="el_source">SimpleRecipe.java</span></div><h1>SimpleRecipe.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Recipe;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map.Entry;
+
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
+import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.inventory.ShapelessRecipe;
+
+import me.Fupery.ArtMap.ArtMap;
+
+public abstract class SimpleRecipe {
+
+    public abstract Recipe toBukkitRecipe(ItemStack result);
+
+    public abstract ItemStack[] getPreview();
+
+	private String name;
+
+<span class="nc" id="L24">	public SimpleRecipe(String name) {</span>
+<span class="nc" id="L25">		this.name = name;</span>
+<span class="nc" id="L26">	}</span>
+
+	public String getName() {
+<span class="nc" id="L29">		return this.name;</span>
+	}
+
+    public static class Shaped extends SimpleRecipe {
+
+		public Shaped(String name) {
+<span class="nc" id="L35">			super(name);</span>
+<span class="nc" id="L36">		}</span>
+
+<span class="nc" id="L38">		private HashMap&lt;Character, Ingredient&gt; items = new HashMap&lt;&gt;();</span>
+        private String[] shape;
+
+        public Shaped shape(String... rows) {
+<span class="nc bnc" id="L42" title="All 2 branches missed.">            if (rows.length != 3) throw new RecipeException(&quot;A recipe shape must have exactly 3 rows.&quot;);</span>
+<span class="nc bnc" id="L43" title="All 4 branches missed.">            for (String row : rows) if (row.length() != 3) throw new RecipeException(&quot;Recipe row length must be 3.&quot;);</span>
+<span class="nc" id="L44">            shape = rows;</span>
+<span class="nc" id="L45">            return this;</span>
+        }
+
+        public Shaped set(char key, Material material, int durability) {
+<span class="nc" id="L49">			items.put(key, new Ingredient.WrappedMaterial(material, 1));</span>
+<span class="nc" id="L50">            return this;</span>
+        }
+
+        public Shaped set(char key, Material material) {
+<span class="nc" id="L54">            return set(key, material, -1);</span>
+        }
+
+        public Shaped set(char key, Ingredient ingredient) {
+<span class="nc" id="L58">            items.put(key, ingredient);</span>
+<span class="nc" id="L59">            return this;</span>
+        }
+
+        @Override
+        public Recipe toBukkitRecipe(ItemStack result) {
+<span class="nc" id="L64">			NamespacedKey key = new NamespacedKey(ArtMap.instance(), this.getName());</span>
+<span class="nc" id="L65">			ShapedRecipe recipe = new ShapedRecipe(key, result);</span>
+<span class="nc" id="L66">            recipe.shape(shape);</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">            for (Entry&lt;Character,Ingredient&gt; ent : items.entrySet()) {</span>
+<span class="nc" id="L68">                Ingredient item = ent.getValue();</span>
+<span class="nc" id="L69">				recipe.setIngredient(ent.getKey(), item.getMaterial());</span>
+<span class="nc" id="L70">            }</span>
+<span class="nc" id="L71">            return recipe;</span>
+        }
+
+        @Override
+        public ItemStack[] getPreview() {
+<span class="nc" id="L76">            ItemStack[] preview = new ItemStack[9];</span>
+<span class="nc" id="L77">            int i = 0;</span>
+<span class="nc bnc" id="L78" title="All 2 branches missed.">            for (String s : shape) {</span>
+<span class="nc bnc" id="L79" title="All 2 branches missed.">                for (char c : s.toCharArray()) {</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">                    if (items.containsKey(c)) preview[i] = items.get(c).toItemStack();</span>
+<span class="nc" id="L81">                    i++;</span>
+                }
+            }
+<span class="nc" id="L84">            return preview;</span>
+        }
+    }
+
+    public static class Shapeless extends SimpleRecipe {
+
+		public Shapeless(String name) {
+<span class="nc" id="L91">			super(name);</span>
+<span class="nc" id="L92">		}</span>
+
+<span class="nc" id="L94">		private ArrayList&lt;Ingredient&gt; items = new ArrayList&lt;&gt;();</span>
+
+        public Shapeless add(Material material, int durability, int amount) {
+<span class="nc" id="L97">			items.add(new Ingredient.WrappedMaterial(material, amount));</span>
+<span class="nc" id="L98">            return this;</span>
+        }
+
+        public Shapeless add(Material material, int durability) {
+<span class="nc" id="L102">            return add(material, durability, 1);</span>
+        }
+
+        public Shapeless add(Material material) {
+<span class="nc" id="L106">            return add(material, -1, 1);</span>
+        }
+
+        public Shapeless add(Ingredient ingredient) {
+<span class="nc" id="L110">            items.add(ingredient);</span>
+<span class="nc" id="L111">            return this;</span>
+        }
+
+        @Override
+        public Recipe toBukkitRecipe(ItemStack result) {
+<span class="nc" id="L116">			NamespacedKey key = new NamespacedKey(ArtMap.instance(), this.getName());</span>
+<span class="nc" id="L117">			ShapelessRecipe recipe = new ShapelessRecipe(key, result);</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">            for (Ingredient item : items) {</span>
+<span class="nc" id="L119">				recipe.addIngredient(item.getAmount(), item.getMaterial());</span>
+<span class="nc" id="L120">            }</span>
+<span class="nc" id="L121">            return recipe;</span>
+        }
+
+        @Override
+        public ItemStack[] getPreview() {
+<span class="nc" id="L126">            ItemStack[] preview = new ItemStack[9];</span>
+<span class="nc bnc" id="L127" title="All 4 branches missed.">            for (int i = 0; i &lt; 9 &amp;&amp; i &lt; items.size(); i++) {</span>
+<span class="nc" id="L128">                Ingredient item = items.get(i);</span>
+<span class="nc" id="L129">                preview[i] = item.toItemStack();</span>
+            }
+<span class="nc" id="L131">            return preview;</span>
+        }
+    }
+
+    private static class RecipeException extends RuntimeException {
+		/**  */
+		private static final long serialVersionUID = 1L;
+
+		private RecipeException(String message) {
+<span class="nc" id="L140">            super(message);</span>
+<span class="nc" id="L141">        }</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

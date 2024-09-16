@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DeleteConfirmationMenu.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Menu.HelpMenu</a> &gt; <span class="el_source">DeleteConfirmationMenu.java</span></div><h1>DeleteConfirmationMenu.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Menu.HelpMenu;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+import java.util.logging.Level;
+
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.api.Config.Lang;
+import me.Fupery.ArtMap.IO.MapArt;
+import me.Fupery.ArtMap.Menu.API.ChildMenu;
+import me.Fupery.ArtMap.Menu.API.ListMenu;
+import me.Fupery.ArtMap.Menu.Button.Button;
+import me.Fupery.ArtMap.Menu.Event.MenuCloseReason;
+import me.Fupery.ArtMap.Menu.Handler.CacheableMenu;
+import me.Fupery.ArtMap.Recipe.ArtItem;
+
+public class DeleteConfirmationMenu extends ListMenu implements ChildMenu {
+	private ArtistArtworksMenu parent;
+	private boolean adminViewing;
+	private MapArt artwork;
+
+	public DeleteConfirmationMenu(ArtistArtworksMenu parent, MapArt artwork, boolean adminViewing) {
+<span class="nc" id="L32">		super(Lang.MenuTitle.MENU_DELETE.get(), 0);</span>
+<span class="nc" id="L33">		this.parent = parent;</span>
+<span class="nc" id="L34">		this.adminViewing = adminViewing;</span>
+<span class="nc" id="L35">		this.artwork = artwork;</span>
+<span class="nc" id="L36">	}</span>
+
+	public static boolean isPreviewItem(ItemStack item) {
+<span class="nc bnc" id="L39" title="All 6 branches missed.">		return item != null &amp;&amp; item.getType() == Material.FILLED_MAP &amp;&amp; item.hasItemMeta()</span>
+<span class="nc bnc" id="L40" title="All 4 branches missed.">				&amp;&amp; item.getItemMeta().hasLore() &amp;&amp; item.getItemMeta().getLore().get(0).equals(ArtItem.PREVIEW_KEY);</span>
+	}
+
+	@Override
+	public CacheableMenu getParent(Player viewer) {
+<span class="nc" id="L45">		return parent;</span>
+	}
+
+	@Override
+	protected Future&lt;Button[]&gt; getListItems() {
+<span class="nc" id="L50">		List&lt;Button&gt; buttons = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L51">		buttons.add(new AcceptButton(this.parent, this.artwork, adminViewing));</span>
+<span class="nc" id="L52">		return CompletableFuture.completedFuture(buttons.toArray(new Button[0]));</span>
+	}
+
+	private static class AcceptButton extends Button {
+
+		private final MapArt artwork;
+		private final ArtistArtworksMenu artworkMenu;
+
+		private AcceptButton(ArtistArtworksMenu menu, MapArt artwork, boolean adminButton) {
+<span class="nc" id="L61">			super(Material.REDSTONE);</span>
+<span class="nc" id="L62">			ItemMeta meta = new ItemStack(Material.REDSTONE).getItemMeta();</span>
+<span class="nc" id="L63">			meta.setDisplayName(HelpMenu.ACCEPT_NAME);</span>
+<span class="nc" id="L64">			List&lt;String&gt; lore = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L65">			lore.add(HelpMenu.ACCEPT_TEXT);</span>
+<span class="nc" id="L66">			meta.setLore(lore);</span>
+<span class="nc" id="L67">			setItemMeta(meta);</span>
+<span class="nc" id="L68">			this.artwork = artwork;</span>
+<span class="nc" id="L69">			this.artworkMenu = menu;</span>
+<span class="nc" id="L70">		}</span>
+
+		@Override
+		public void onClick(Player player, ClickType clickType) {
+
+<span class="nc bnc" id="L75" title="All 2 branches missed.">			if (clickType == ClickType.LEFT) {</span>
+<span class="nc" id="L76">				ArtMap.instance().getMenuHandler().closeMenu(player, MenuCloseReason.DONE);</span>
+
+<span class="nc" id="L78">				ArtMap.instance().getScheduler().SYNC.run(() -&gt; {</span>
+<span class="nc bnc" id="L79" title="All 4 branches missed.">					if (this.artwork.getArtist().equals(player.getUniqueId()) || player.hasPermission(&quot;artmap.admin&quot;)) {</span>
+						try {
+<span class="nc" id="L81">							ArtMap.instance().getArtDatabase().deleteArtwork(this.artwork);</span>
+<span class="nc" id="L82">							player.sendMessage(String.format(Lang.DELETED.get(), this.artwork.getTitle()));</span>
+<span class="nc" id="L83">						} catch (SQLException | NoSuchFieldException | IllegalAccessException e) {</span>
+<span class="nc" id="L84">							ArtMap.instance().getLogger().log(Level.SEVERE, &quot;Error deleting artwork!!&quot;, e);</span>
+<span class="nc" id="L85">							player.sendMessage(&quot;Error deleting Artwork check logs.&quot;);</span>
+<span class="nc" id="L86">							return; </span>
+<span class="nc" id="L87">						}</span>
+					} else {
+<span class="nc" id="L89">						player.sendMessage(Lang.NO_PERM.get());</span>
+<span class="nc" id="L90">						return;</span>
+					}
+<span class="nc" id="L92">					ArtMap.instance().getMenuHandler().openMenu(player, this.artworkMenu);</span>
+<span class="nc" id="L93">				});</span>
+			}
+<span class="nc" id="L95">		}</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

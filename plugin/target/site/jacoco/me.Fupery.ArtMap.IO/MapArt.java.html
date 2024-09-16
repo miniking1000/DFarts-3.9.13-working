@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MapArt.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.IO</a> &gt; <span class="el_source">MapArt.java</span></div><h1>MapArt.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.IO;
+
+import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.UUID;
+
+import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.inventory.ItemStack;
+
+import me.Fupery.ArtMap.IO.Database.Map;
+import me.Fupery.ArtMap.Recipe.ArtItem;
+
+public class MapArt {
+    private final int id;
+    private final String title;
+    private final UUID artist;
+    private final String artistName;
+    private final String date;
+
+    public MapArt(int mapIDValue, String title, UUID artist, String artistName, Date date) {
+<span class="fc" id="L24">        this(mapIDValue, title, artist, artistName, new SimpleDateFormat(&quot;dd.MM.yyyy&quot;).format(date));</span>
+<span class="fc" id="L25">    }</span>
+
+<span class="fc" id="L27">    public MapArt(int id, String title, UUID artist, String artistName, String date) {</span>
+<span class="fc" id="L28">        this.id = id;</span>
+<span class="fc" id="L29">        this.title = title;</span>
+<span class="fc" id="L30">        this.artist = artist;</span>
+<span class="fc" id="L31">        this.date = date;</span>
+<span class="fc" id="L32">        this.artistName = artistName;</span>
+<span class="fc" id="L33">    }</span>
+
+    public OfflinePlayer getArtistPlayer() {
+<span class="fc" id="L36">        return Bukkit.getOfflinePlayer(artist);</span>
+    }
+
+    public boolean isValid() {
+<span class="nc bnc" id="L40" title="All 8 branches missed.">        return title != null &amp;&amp; title.length() &gt; 2 &amp;&amp; title.length() &lt;= 16 &amp;&amp; getArtistPlayer().hasPlayedBefore();</span>
+    }
+
+    public boolean equals(MapArt art, boolean ignoreMapID) {
+<span class="pc bpc" id="L44" title="1 of 4 branches missed.">        return (title.equals(art.title) &amp;&amp; date.equals(art.date))</span>
+<span class="pc bpc" id="L45" title="4 of 6 branches missed.">                &amp;&amp; artist.equals(art.artist)</span>
+                &amp;&amp; (id == art.id || ignoreMapID);
+    }
+
+    @Override
+    public int hashCode() {
+<span class="nc" id="L51">        HashCodeBuilder builder = new HashCodeBuilder(77, 123);</span>
+<span class="nc" id="L52">        builder.append(title);</span>
+<span class="nc" id="L53">        builder.append(id);</span>
+<span class="nc" id="L54">        return builder.toHashCode();</span>
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+<span class="pc bpc" id="L59" title="1 of 4 branches missed.">        return obj instanceof MapArt &amp;&amp; equals(((MapArt) obj), false);</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="fc" id="L64">        return MessageFormat.format(&quot;Artwork #{0} created by {1} named {2} on {3}&quot;, this.id,this.artist,this.title,this.date);</span>
+    }
+
+    public ItemStack getMapItem() {
+<span class="nc" id="L68">        return new ArtItem.ArtworkItem(id, title, artistName, date).toItemStack();</span>
+    }
+
+    public int getMapId() {
+<span class="fc" id="L72">        return id;</span>
+    }
+
+    public String getTitle() {
+<span class="fc" id="L76">        return title;</span>
+    }
+
+    public UUID getArtist() {
+<span class="fc" id="L80">        return artist;</span>
+    }
+
+    public String getArtistName() {
+<span class="fc" id="L84">        return artistName;</span>
+    }
+
+    public String getDate() {
+<span class="fc" id="L88">        return date;</span>
+    }
+
+    public MapArt setAristName(String name) {
+<span class="nc" id="L92">        return new MapArt(this.id, title, this.artist, name, this.date);</span>
+    }
+
+    public MapArt updateMapId(int newID) {
+<span class="nc" id="L96">        return new MapArt(newID, title, artist, artistName, date);</span>
+    }
+
+	public MapArt setTitle(String title) {
+<span class="nc" id="L100">		return new MapArt(this.id, title, this.artist, this.artistName, this.date);</span>
+	}
+
+    public Map getMap() {
+<span class="fc" id="L104">        return new Map(id);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

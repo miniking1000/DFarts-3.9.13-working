@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CommandConvert.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Command</a> &gt; <span class="el_source">CommandConvert.java</span></div><h1>CommandConvert.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Command;
+
+import org.bukkit.command.CommandSender;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.IO.Legacy.DatabaseConverter;
+import me.Fupery.ArtMap.IO.Legacy.FlatDatabaseConverter;
+import me.Fupery.ArtMap.IO.Legacy.V2DatabaseConverter;
+
+class CommandConvert extends AsyncCommand {
+
+    CommandConvert() {
+<span class="nc" id="L13">		super(&quot;artmap.admin&quot;, &quot;/art convert [--force]&quot;, true);</span>
+<span class="nc" id="L14">    }</span>
+
+    @Override
+    public void runCommand(CommandSender sender, String[] args, ReturnMessage msg) {
+<span class="nc" id="L18">        boolean isForced = false;</span>
+<span class="nc" id="L19">        boolean conversionDone = false;</span>
+<span class="nc bnc" id="L20" title="All 4 branches missed.">        if(args.length &gt; 1 &amp;&amp; args[1].equals(&quot;--force&quot;)) {</span>
+<span class="nc" id="L21">            isForced = true;</span>
+        }
+
+        //figure out which conversion we are doing
+<span class="nc" id="L25">        DatabaseConverter flat = new FlatDatabaseConverter(ArtMap.instance());</span>
+<span class="nc" id="L26">        DatabaseConverter v2 = new V2DatabaseConverter(ArtMap.instance());</span>
+<span class="nc bnc" id="L27" title="All 2 branches missed.">        if(flat.isNeeded()) {</span>
+<span class="nc" id="L28">            sender.sendMessage(&quot;Artmap: Flat DB conversion needed.&quot;);</span>
+<span class="nc" id="L29">            conversionDone = flat.createExport(sender, false);</span>
+        }
+<span class="nc bnc" id="L31" title="All 2 branches missed.">        if(v2.isNeeded()) {</span>
+<span class="nc" id="L32">            sender.sendMessage(&quot;Artmap: V2 DB conversion needed.&quot;);</span>
+<span class="nc" id="L33">            conversionDone = v2.createExport(sender, false);</span>
+        }
+<span class="nc bnc" id="L35" title="All 4 branches missed.">        if(isForced &amp;&amp; flat.canBeForced()) {</span>
+<span class="nc" id="L36">            sender.sendMessage(&quot;Artmap: Flat DB conversion being forced.&quot;);</span>
+<span class="nc" id="L37">            conversionDone = flat.createExport(sender, true);</span>
+        }
+<span class="nc bnc" id="L39" title="All 4 branches missed.">        if(isForced &amp;&amp; v2.canBeForced()) {</span>
+<span class="nc" id="L40">            sender.sendMessage(&quot;Artmap: V2 DB conversion being forced.&quot;);</span>
+<span class="nc" id="L41">            conversionDone = v2.createExport(sender, true);</span>
+        }
+<span class="nc bnc" id="L43" title="All 2 branches missed.">        if(conversionDone) {</span>
+<span class="nc" id="L44">            sender.sendMessage(&quot;Artmap: Run '/artmap import -all &lt;filename&gt;' replace &lt;filename&gt; with the filename of the export printed above. &quot;);</span>
+        } else {
+<span class="nc" id="L46">            sender.sendMessage(&quot;Artmap: Conversion not needed or failed.&quot;);</span>
+        }
+<span class="nc" id="L48">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

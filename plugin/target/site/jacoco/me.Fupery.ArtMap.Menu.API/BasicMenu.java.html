@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BasicMenu.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Menu.API</a> &gt; <span class="el_source">BasicMenu.java</span></div><h1>BasicMenu.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Menu.API;
+
+import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryType;
+
+import me.Fupery.ArtMap.Menu.Event.MenuCloseReason;
+import me.Fupery.ArtMap.Menu.Handler.CacheableMenu;
+
+public abstract class BasicMenu extends CacheableMenu {
+
+    protected BasicMenu(String heading, InventoryType type) {
+<span class="nc" id="L13">        super(heading, type);</span>
+<span class="nc" id="L14">    }</span>
+
+	protected BasicMenu(String heading, MenuType type) {
+<span class="nc" id="L17">		super(heading, type);</span>
+<span class="nc" id="L18">	}</span>
+
+    @Override
+    public void onMenuOpenEvent(Player viewer) {
+<span class="nc" id="L22">    }</span>
+
+    @Override
+    public void onMenuRefreshEvent(Player viewer) {
+<span class="nc" id="L26">    }</span>
+
+    @Override
+    public void onMenuClickEvent(Player viewer, int slot, ClickType click) {
+<span class="nc" id="L30">    }</span>
+
+    @Override
+    public void onMenuCloseEvent(Player viewer, MenuCloseReason reason) {
+<span class="nc" id="L34">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

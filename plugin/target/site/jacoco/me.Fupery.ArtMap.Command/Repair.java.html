@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Repair.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Command</a> &gt; <span class="el_source">Repair.java</span></div><h1>Repair.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Command;
+
+import java.io.FileNotFoundException;
+import java.sql.SQLException;
+import java.util.Optional;
+import java.util.logging.Level;
+
+import org.bukkit.command.CommandSender;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.api.Config.Lang;
+import me.Fupery.ArtMap.IO.MapArt;
+
+public class Repair extends AsyncCommand {
+
+    Repair() {
+<span class="nc" id="L17">        super(null, &quot;/art repair &lt;-scan|-repair&gt; [name|ID|-all]&quot;, true);</span>
+<span class="nc" id="L18">    }</span>
+
+    @Override
+    public void runCommand(CommandSender sender, String[] args, ReturnMessage msg) {
+<span class="nc bnc" id="L22" title="All 2 branches missed.">        if (!sender.hasPermission(&quot;artmap.admin&quot;)) {</span>
+<span class="nc" id="L23">            msg.message = Lang.NO_PERM.get();</span>
+<span class="nc" id="L24">            return;</span>
+        }
+
+        // args[0] is export
+<span class="nc bnc" id="L28" title="All 2 branches missed.">        if (args.length &lt; 3) {</span>
+            // TODO: need usage
+<span class="nc" id="L30">            msg.message = Lang.REPAIR_USAGE.get();</span>
+<span class="nc" id="L31">            return;</span>
+        }
+
+<span class="nc" id="L34">        boolean all = &quot;-all&quot;.equalsIgnoreCase(args[2]);</span>
+        
+<span class="nc bnc" id="L36" title="All 3 branches missed.">        switch (args[1]) {</span>
+            case &quot;-scan&quot;:
+<span class="nc bnc" id="L38" title="All 2 branches missed.">                if(all) {</span>
+<span class="nc" id="L39">                    msg.message = &quot;Scan will be run asynchronously check the logs for progress.&quot;;</span>
+<span class="nc" id="L40">                    repairAll(false);</span>
+<span class="nc" id="L41">                    return;</span>
+                }
+<span class="nc" id="L43">                msg.message = repair(args[2], false);</span>
+<span class="nc" id="L44">                break;</span>
+            case &quot;-repair&quot;:
+<span class="nc bnc" id="L46" title="All 2 branches missed.">                if(all) {</span>
+<span class="nc" id="L47">                    msg.message = &quot;Scan will be run asynchronously check the logs for progress.&quot;;</span>
+<span class="nc" id="L48">                    repairAll(true);</span>
+<span class="nc" id="L49">                    return;  </span>
+                }
+<span class="nc" id="L51">                msg.message = repair(args[2], true);</span>
+<span class="nc" id="L52">                break;</span>
+            default:
+<span class="nc" id="L54">                msg.message = Lang.COMMAND_EXPORT.get();</span>
+<span class="nc" id="L55">                return;</span>
+        }
+
+<span class="nc" id="L58">    }</span>
+
+
+    private String repair(String input, boolean repair) {
+<span class="nc" id="L62">        Integer id = null;</span>
+        try {
+<span class="nc" id="L64">            id = Integer.parseInt(input);</span>
+<span class="nc" id="L65">        } catch(NumberFormatException nfe) {</span>
+            //likely an artwork name
+            Optional&lt;MapArt&gt; art;
+            try {
+<span class="nc" id="L69">                art = ArtMap.instance().getArtDatabase().getArtwork(input);</span>
+<span class="nc" id="L70">            } catch (SQLException e) {</span>
+<span class="nc" id="L71">                return e.getMessage();</span>
+<span class="nc" id="L72">            }</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">            if(!art.isPresent()) {</span>
+<span class="nc" id="L74">                return &quot;No artwork found with this name: &quot; + input;</span>
+            }
+<span class="nc" id="L76">            id = art.get().getMapId();</span>
+<span class="nc" id="L77">        }</span>
+        try {
+<span class="nc" id="L79">            boolean repaired = this.repairArtwork(id, repair);</span>
+<span class="nc bnc" id="L80" title="All 2 branches missed.">            if(repair) {</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">                return repaired ? &quot;Artwork repaired.&quot; : &quot;Artwork repair failed check the logs.&quot;;</span>
+            } else {
+<span class="nc bnc" id="L83" title="All 2 branches missed.">                return repaired ? &quot;Artwork is corrupted.&quot; : &quot;Artwork is in a good state.&quot;;</span>
+            }
+            
+<span class="nc" id="L86">        } catch (FileNotFoundException e) {</span>
+<span class="nc" id="L87">            return e.getMessage();</span>
+        }
+        
+    }
+
+    private void repairAll(boolean repair) {
+<span class="nc" id="L93">        ArtMap.instance().getScheduler().ASYNC.run(()-&gt; {</span>
+            try {
+<span class="nc" id="L95">                MapArt[] arts = ArtMap.instance().getArtDatabase().listMapArt();</span>
+<span class="nc" id="L96">                final int total = arts.length;</span>
+<span class="nc" id="L97">                int good = 0;</span>
+<span class="nc" id="L98">                int repaired = 0;</span>
+<span class="nc" id="L99">                int failed = 0;</span>
+<span class="nc" id="L100">                int completed = 0;</span>
+<span class="nc" id="L101">                long lastUpdate = Long.MIN_VALUE;</span>
+<span class="nc" id="L102">                final long UPDATE_INTERVAL = 30 * 1000; //30 seconds</span>
+<span class="nc" id="L103">                ArtMap.instance().getLogger().info(&quot;Beginning scan of &quot; + total + &quot; artworks&quot;);</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">                for(MapArt art : arts) {</span>
+                    boolean result;
+                    try {
+<span class="nc" id="L107">                        result = this.repairArtwork(art.getMapId(), repair);</span>
+<span class="nc bnc" id="L108" title="All 2 branches missed.">                        if(result) {</span>
+<span class="nc" id="L109">                            repaired++;</span>
+                        } else {
+<span class="nc" id="L111">                            good++;</span>
+                        }
+<span class="nc" id="L113">                    } catch (FileNotFoundException e) {</span>
+<span class="nc" id="L114">                        ArtMap.instance().getLogger().log(Level.SEVERE, &quot;Failed to retrieve artwork! :: &quot; + art.getMapId());</span>
+<span class="nc" id="L115">                        failed++;</span>
+<span class="nc" id="L116">                    }</span>
+<span class="nc" id="L117">                    completed++;</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">                    if(lastUpdate + UPDATE_INTERVAL &lt; System.currentTimeMillis()) {</span>
+<span class="nc" id="L119">                        lastUpdate = System.currentTimeMillis();</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">                        String output = repair ? &quot;Repaired&quot; : &quot;Corrupted&quot;;</span>
+<span class="nc" id="L121">                        ArtMap.instance().getLogger().info(&quot;Scan progress: Completed: &quot; + completed + &quot; Good: &quot; + good + &quot; &quot; + output + &quot;:&quot; + repaired + &quot; Failed: &quot; + failed);</span>
+                    }
+<span class="nc" id="L123">                    Thread.sleep(100); //sleep 100 </span>
+                }
+<span class="nc bnc" id="L125" title="All 2 branches missed.">                String output = repair ? &quot;Repaired&quot; : &quot;Corrupted&quot;;</span>
+<span class="nc" id="L126">                ArtMap.instance().getLogger().info(&quot;Scan Complete: Completed: &quot; + completed + &quot; Good: &quot; + good + &quot; &quot; + output + &quot;: &quot; + repaired + &quot; Failed: &quot; + failed);</span>
+<span class="nc" id="L127">            } catch (SQLException e) {</span>
+<span class="nc" id="L128">                ArtMap.instance().getLogger().log(Level.SEVERE, &quot;Failed to retrieve artwork!&quot;, e);</span>
+<span class="nc" id="L129">            } catch (InterruptedException e) {</span>
+<span class="nc" id="L130">                ArtMap.instance().getLogger().log(Level.SEVERE, &quot;Scan interruped!&quot;, e);</span>
+<span class="nc" id="L131">            }</span>
+<span class="nc" id="L132">        });</span>
+
+<span class="nc" id="L134">    }</span>
+
+    /**
+     * Check wether the specied artwork can be loaded and if repair is true attempt
+     * to fix it.
+     * 
+     * @param id     The Map ID of the artwork to repair
+     * @param repair True - Attempt to repair to artwork.
+     * @return
+     * @throws FileNotFoundException
+     */
+    private boolean repairArtwork(int id, boolean repair) throws FileNotFoundException {
+<span class="nc" id="L146">        MapArt art = null;</span>
+        try {
+<span class="nc" id="L148">            art = ArtMap.instance().getArtDatabase().getArtwork(id);</span>
+<span class="nc" id="L149">        } catch (SQLException e) {</span>
+<span class="nc" id="L150">            return false;</span>
+<span class="nc" id="L151">        }</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">        if(art == null) {</span>
+<span class="nc" id="L153">            throw new FileNotFoundException(&quot;Artwork with the provided ID does not exist. :: &quot; + id);</span>
+        }
+<span class="nc" id="L155">        return ArtMap.instance().getArtDatabase().restoreMap(art.getMap(), repair, repair);</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

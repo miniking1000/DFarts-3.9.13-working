@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/compatibility/ASkyBlock/ASkyBlock.iml" filepath="$PROJECT_DIR$/compatibility/ASkyBlock/ASkyBlock.iml" />
+      <module fileurl="file://$PROJECT_DIR$/plugin/ArtMap.iml" filepath="$PROJECT_DIR$/plugin/ArtMap.iml" />
+      <module fileurl="file://$PROJECT_DIR$/api/ArtMap-api.iml" filepath="$PROJECT_DIR$/api/ArtMap-api.iml" />
+      <module fileurl="file://$PROJECT_DIR$/compatibility/BentoBox/BentoBox.iml" filepath="$PROJECT_DIR$/compatibility/BentoBox/BentoBox.iml" />
+      <module fileurl="file://$PROJECT_DIR$/compatibility/CMI/CMI.iml" filepath="$PROJECT_DIR$/compatibility/CMI/CMI.iml" />
+      <module fileurl="file://$PROJECT_DIR$/compatibility/Essentials/Essentials.iml" filepath="$PROJECT_DIR$/compatibility/Essentials/Essentials.iml" />
+      <module fileurl="file://$PROJECT_DIR$/compatibility/Factions/Factions.iml" filepath="$PROJECT_DIR$/compatibility/Factions/Factions.iml" />
+      <module fileurl="file://$PROJECT_DIR$/compatibility/GriefDefender/GriefDefender.iml" filepath="$PROJECT_DIR$/compatibility/GriefDefender/GriefDefender.iml" />
+      <module fileurl="file://$PROJECT_DIR$/compatibility/GriefPrevention/GriefPrevention.iml" filepath="$PROJECT_DIR$/compatibility/GriefPrevention/GriefPrevention.iml" />
+      <module fileurl="file://$PROJECT_DIR$/compatibility/MarriageMaster/MarriageMaster.iml" filepath="$PROJECT_DIR$/compatibility/MarriageMaster/MarriageMaster.iml" />
+      <module fileurl="file://$PROJECT_DIR$/compatibility/PlotSquared4/PlotSquared4.iml" filepath="$PROJECT_DIR$/compatibility/PlotSquared4/PlotSquared4.iml" />
+      <module fileurl="file://$PROJECT_DIR$/compatibility/PlotSquared5/PlotSquared5.iml" filepath="$PROJECT_DIR$/compatibility/PlotSquared5/PlotSquared5.iml" />
+      <module fileurl="file://$PROJECT_DIR$/compatibility/PlotSquared6/PlotSquared6.iml" filepath="$PROJECT_DIR$/compatibility/PlotSquared6/PlotSquared6.iml" />
+      <module fileurl="file://$PROJECT_DIR$/compatibility/PlotSquared7/PlotSquared7.iml" filepath="$PROJECT_DIR$/compatibility/PlotSquared7/PlotSquared7.iml" />
+      <module fileurl="file://$PROJECT_DIR$/compatibility/RedProtect/RedProtect.iml" filepath="$PROJECT_DIR$/compatibility/RedProtect/RedProtect.iml" />
+      <module fileurl="file://$PROJECT_DIR$/compatibility/Residence/Residence.iml" filepath="$PROJECT_DIR$/compatibility/Residence/Residence.iml" />
+      <module fileurl="file://$PROJECT_DIR$/compatibility/SabreFactions/SabreFactions.iml" filepath="$PROJECT_DIR$/compatibility/SabreFactions/SabreFactions.iml" />
+      <module fileurl="file://$PROJECT_DIR$/compatibility/Spigot_1_13/Spigot_1_13.iml" filepath="$PROJECT_DIR$/compatibility/Spigot_1_13/Spigot_1_13.iml" />
+      <module fileurl="file://$PROJECT_DIR$/compatibility/Spigot_1_14/Spigot_1_14.iml" filepath="$PROJECT_DIR$/compatibility/Spigot_1_14/Spigot_1_14.iml" />
+      <module fileurl="file://$PROJECT_DIR$/compatibility/Spigot_1_16/Spigot_1_16.iml" filepath="$PROJECT_DIR$/compatibility/Spigot_1_16/Spigot_1_16.iml" />
+      <module fileurl="file://$PROJECT_DIR$/compatibility/Spigot_1_18/Spigot_1_18.iml" filepath="$PROJECT_DIR$/compatibility/Spigot_1_18/Spigot_1_18.iml" />
+      <module fileurl="file://$PROJECT_DIR$/compatibility/Spigot_1_20_2/Spigot_1_20_2.iml" filepath="$PROJECT_DIR$/compatibility/Spigot_1_20_2/Spigot_1_20_2.iml" />
+      <module fileurl="file://$PROJECT_DIR$/compatibility/Towny/Towny.iml" filepath="$PROJECT_DIR$/compatibility/Towny/Towny.iml" />
+      <module fileurl="file://$PROJECT_DIR$/compatibility/USkyBlock/USkyBlock.iml" filepath="$PROJECT_DIR$/compatibility/USkyBlock/USkyBlock.iml" />
+      <module fileurl="file://$PROJECT_DIR$/compatibility/WorldGuard/WorldGuard.iml" filepath="$PROJECT_DIR$/compatibility/WorldGuard/WorldGuard.iml" />
+    </modules>
+  </component>
+</project>

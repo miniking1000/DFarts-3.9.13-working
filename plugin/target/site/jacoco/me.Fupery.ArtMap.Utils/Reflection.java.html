@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Reflection.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Utils</a> &gt; <span class="el_source">Reflection.java</span></div><h1>Reflection.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Utils;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+
+import org.bukkit.Bukkit;
+import org.bukkit.map.MapView;
+
+<span class="nc" id="L11">public class Reflection {</span>
+
+    public static final String NMS;
+
+    static {
+<span class="nc" id="L16">        String version = Bukkit.getServer().getClass().getPackage().getName();</span>
+<span class="nc" id="L17">        NMS = version.replace(&quot;org.bukkit.craftbukkit&quot;, &quot;net.minecraft.server&quot;);</span>
+<span class="nc" id="L18">    }</span>
+
+    public Object getField(Object obj, String fieldName)
+            throws NoSuchFieldException, IllegalAccessException {
+        Field field;
+        try {
+<span class="nc" id="L24">            field = obj.getClass().getDeclaredField(fieldName);</span>
+<span class="nc" id="L25">            field.setAccessible(true);</span>
+<span class="nc" id="L26">        } catch (NoSuchFieldException e) {</span>
+<span class="nc" id="L27">            throw new NoSuchFieldException(String.format(&quot;Field '%s' could not be found in '%s'. Fields found: {%s}&quot;,</span>
+<span class="nc" id="L28">                    fieldName, obj.getClass().getName(), Arrays.asList(obj.getClass().getDeclaredFields())));</span>
+<span class="nc" id="L29">        }</span>
+<span class="nc" id="L30">        return field.get(obj);</span>
+    }
+
+    public Object getSuperField(Object obj, String fieldName) throws NoSuchFieldException, IllegalAccessException {
+        Field field;
+        try {
+<span class="nc" id="L36">            field = obj.getClass().getSuperclass().getDeclaredField(fieldName);</span>
+<span class="nc" id="L37">            field.setAccessible(true);</span>
+<span class="nc" id="L38">        } catch (NoSuchFieldException e) {</span>
+<span class="nc" id="L39">            throw new NoSuchFieldException(String.format(&quot;Field '%s' could not be found in '%s'. Fields found: {%s}&quot;,</span>
+<span class="nc" id="L40">                    fieldName, obj.getClass().getName(), Arrays.asList(obj.getClass().getDeclaredFields())));</span>
+<span class="nc" id="L41">        }</span>
+<span class="nc" id="L42">        return field.get(obj);</span>
+    }
+
+    public void setField(Object obj, String fieldName, Object value)
+            throws NoSuchFieldException, IllegalAccessException {
+        Field field;
+        try {
+<span class="nc" id="L49">            field = obj.getClass().getDeclaredField(fieldName);</span>
+<span class="nc" id="L50">            field.setAccessible(true);</span>
+<span class="nc" id="L51">        } catch (NoSuchFieldException e) {</span>
+<span class="nc" id="L52">            throw new NoSuchFieldException(String.format(&quot;Field '%s' could not be found in '%s'. Fields found: [%s]&quot;,</span>
+<span class="nc" id="L53">                    fieldName, obj.getClass().getName(), Arrays.asList(obj.getClass().getDeclaredFields())));</span>
+<span class="nc" id="L54">        }</span>
+<span class="nc" id="L55">        field.set(obj, value);</span>
+<span class="nc" id="L56">    }</span>
+
+    public Object invokeMethod(Object obj, String methodName)
+            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        Method method;
+        try {
+<span class="nc" id="L62">            method = obj.getClass().getDeclaredMethod(methodName);</span>
+<span class="nc" id="L63">            method.setAccessible(true);</span>
+<span class="nc" id="L64">        } catch (NoSuchMethodException e) {</span>
+<span class="nc" id="L65">            throw new NoSuchMethodException(String.format(&quot;Method '%s' could not be found in '%s'. Methods found: [%s]&quot;,</span>
+<span class="nc" id="L66">                    methodName, obj.getClass().getName(), Arrays.asList(obj.getClass().getDeclaredMethods())));</span>
+<span class="nc" id="L67">        }</span>
+<span class="nc" id="L68">        return method.invoke(obj);</span>
+    }
+
+    public Object invokeMethod(Object obj, String methodName, Object... parameters)
+            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+        Method method;
+<span class="nc" id="L74">        Class&lt;?&gt;[] parameterTypes = new Class[parameters.length];</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        for (int i = 0; i &lt; parameters.length; i++) {</span>
+<span class="nc" id="L76">            parameterTypes[i] = parameters[i].getClass();</span>
+        }
+        try {
+<span class="nc" id="L79">            method = obj.getClass().getDeclaredMethod(methodName, parameterTypes);</span>
+<span class="nc" id="L80">            method.setAccessible(true);</span>
+<span class="nc" id="L81">        } catch (NoSuchMethodException e) {</span>
+<span class="nc" id="L82">            throw new NoSuchMethodException(String.format(&quot;Method '%s' could not be found in '%s'. Methods found: [%s]&quot;,</span>
+<span class="nc" id="L83">                    methodName, obj.getClass().getName(), Arrays.asList(obj.getClass().getDeclaredMethods())));</span>
+<span class="nc" id="L84">        }</span>
+<span class="nc" id="L85">        return method.invoke(obj, parameters);</span>
+    }
+
+    public Object invokeStaticMethod(String className, String methodName, Object... params)
+            throws Exception {
+<span class="nc" id="L90">        Class&lt;?&gt; obj = Class.forName(NMS + &quot;.&quot; + className);</span>
+
+<span class="nc" id="L92">        Class&lt;?&gt;[] paramTypes = new Class[params.length];</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">        for (int i = 0; i &lt; params.length; i++) paramTypes[i] = params[i].getClass();</span>
+
+        Method method;
+        try {
+<span class="nc" id="L97">            method = obj.getDeclaredMethod(methodName, paramTypes);</span>
+<span class="nc" id="L98">            method.setAccessible(true);</span>
+<span class="nc" id="L99">        } catch (NoSuchMethodException e) {</span>
+<span class="nc" id="L100">            throw new Exception(String.format(&quot;Method '%s' could not be found in '%s'. Methods found: [%s]&quot;,</span>
+<span class="nc" id="L101">                    methodName, obj.getName(), Arrays.asList(obj.getMethods())), e);</span>
+<span class="nc" id="L102">        }</span>
+<span class="nc" id="L103">        return method.invoke(null, params);</span>
+    }
+
+    public byte[] getMap(MapView mapView) {
+        byte[] colors;
+
+        try {
+<span class="nc" id="L110">            Object worldMap = getField(mapView, &quot;worldMap&quot;);</span>
+            try {
+<span class="nc" id="L112">                colors = (byte[]) getField(worldMap, &quot;colors&quot;);</span>
+<span class="nc" id="L113">            } catch (NoSuchFieldException e) {</span>
+                //Then we must be on 1.17
+<span class="nc" id="L115">                colors = (byte[]) getField(worldMap, &quot;g&quot;);</span>
+<span class="nc" id="L116">            }</span>
+<span class="nc" id="L117">        } catch (NoSuchFieldException | SecurityException</span>
+                | IllegalArgumentException | IllegalAccessException e) {
+<span class="nc" id="L119">            colors = null;</span>
+<span class="nc" id="L120">        }</span>
+<span class="nc bnc" id="L121" title="All 2 branches missed.">        if (colors == null) {</span>
+<span class="nc" id="L122">            return new byte[128 * 128];</span>
+        }
+<span class="nc" id="L124">        return colors;</span>
+    }
+
+    public void setWorldMap(MapView mapView, byte[] colors) throws NoSuchFieldException, IllegalAccessException {
+<span class="nc" id="L128">            mapView.setCenterX(-999999);</span>
+<span class="nc" id="L129">            mapView.setCenterZ(-999999);</span>
+            
+<span class="nc" id="L131">            Object worldMap = getField(mapView, &quot;worldMap&quot;);</span>
+            try {
+<span class="nc" id="L133">                setField(worldMap, &quot;colors&quot;, colors);</span>
+<span class="nc" id="L134">            } catch (NoSuchFieldException e) {</span>
+                //Then we must be on 1.17
+<span class="nc" id="L136">                setField(worldMap, &quot;g&quot;, colors);</span>
+<span class="nc" id="L137">            }</span>
+
+<span class="nc" id="L139">            mapView.setScale(MapView.Scale.FARTHEST);</span>
+<span class="nc" id="L140">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

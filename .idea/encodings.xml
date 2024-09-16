@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/api/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/api/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/ASkyBlock/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/ASkyBlock/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/BentoBox/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/BentoBox/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/CMI/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/CMI/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/Essentials/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/Essentials/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/Factions/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/Factions/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/GriefDefender/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/GriefDefender/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/GriefPrevention/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/GriefPrevention/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/MarriageMaster/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/MarriageMaster/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/PlotSquared4/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/PlotSquared4/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/PlotSquared5/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/PlotSquared5/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/PlotSquared6/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/PlotSquared6/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/PlotSquared7/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/PlotSquared7/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/RedProtect/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/RedProtect/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/Residence/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/Residence/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/SabreFactions/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/SabreFactions/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/Spigot_1_13/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/Spigot_1_13/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/Spigot_1_14/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/Spigot_1_14/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/Spigot_1_16/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/Spigot_1_16/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/Spigot_1_18/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/Spigot_1_18/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/Spigot_1_20_2/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/Spigot_1_20_2/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/Towny/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/Towny/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/USkyBlock/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/USkyBlock/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/WorldGuard/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/compatibility/WorldGuard/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/plugin/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/plugin/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
+  </component>
+</project>

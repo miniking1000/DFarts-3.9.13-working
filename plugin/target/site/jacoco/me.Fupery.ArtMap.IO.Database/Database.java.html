@@ -1,0 +1,419 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Database.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.IO.Database</a> &gt; <span class="el_source">Database.java</span></div><h1>Database.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.IO.Database;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.sql.SQLException;
+import java.text.MessageFormat;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.logging.Level;
+
+import org.bukkit.Bukkit;
+import org.bukkit.World;
+import org.bukkit.entity.Player;
+import org.bukkit.map.MapView;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.scheduler.BukkitTask;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.api.Config.Lang;
+import me.Fupery.ArtMap.Easel.Canvas;
+import me.Fupery.ArtMap.Easel.Canvas.CanvasCopy;
+import me.Fupery.ArtMap.Exception.DuplicateArtworkException;
+import me.Fupery.ArtMap.Exception.PermissionException;
+import me.Fupery.ArtMap.IO.CompressedMap;
+import me.Fupery.ArtMap.IO.MapArt;
+
+/**
+ * Database entry point for interacting with saved artwork.
+ */
+public final class Database {
+    private final ArtTable artworks;
+    private final MapTable maps;
+    private BukkitTask autosaveTask;
+<span class="pc" id="L38">    private final Runnable AUTO_SAVE = new Runnable() {</span>
+        @Override
+        public void run() {
+<span class="nc bnc" id="L41" title="All 2 branches missed.">            for (UUID uuid : ArtMap.instance().getArtistHandler().getArtists()) {</span>
+                try {
+<span class="nc" id="L43">                    ArtMap.instance().getArtistHandler().getCurrentSession(uuid).persistMap(false);</span>
+<span class="nc" id="L44">                } catch (SQLException | IOException | NoSuchFieldException | IllegalAccessException e) {</span>
+<span class="nc" id="L45">                    ArtMap.instance().getLogger().log(Level.SEVERE,&quot;Error saving artwork!&quot;,e);</span>
+<span class="nc" id="L46">                }</span>
+<span class="nc" id="L47">            }</span>
+<span class="nc" id="L48">        }</span>
+    };
+
+<span class="fc" id="L51">    public Database(Plugin plugin) throws SQLException {</span>
+        SQLiteDatabase database;
+<span class="fc" id="L53">        database = new SQLiteDatabase(new File(plugin.getDataFolder(), &quot;Art.db&quot;));</span>
+<span class="fc" id="L54">        database.initialize(artworks = new ArtTable(database), maps = new MapTable(database));</span>
+<span class="fc" id="L55">        int delay = ArtMap.instance().getConfiguration().ARTWORK_AUTO_SAVE;</span>
+<span class="fc" id="L56">        this.autosaveTask = ArtMap.instance().getScheduler().ASYNC.runTimer(AUTO_SAVE , delay, delay);</span>
+<span class="fc" id="L57">    }</span>
+
+    /**
+     * Retrieve artwork by its title.
+     * 
+     * @param title The title of the artwork.
+     * @return The artwork or null if it is not in the database.
+     * @throws SQLException
+     */
+    public Optional&lt;MapArt&gt; getArtwork(String title) throws SQLException {
+<span class="fc" id="L67">        return artworks.getArtwork(title);</span>
+    }
+
+    /**
+     * Retrieve artwork by its id.
+     * 
+     * @param id The ID of the artwork.
+     * @return The artwork or null if it is not in the database.
+     * @throws SQLException
+     */
+    public MapArt getArtwork(int id) throws SQLException {
+<span class="fc" id="L78">        return artworks.getArtwork(id);</span>
+    }
+
+    /**
+     * Check if an unsaved artwork exists.
+     * 
+     * @param id The ID of the artwork.
+     * @return True if an unsaved artwork exists.
+     * @throws SQLException
+     */
+    public boolean containsUnsavedArtwork(int id) throws SQLException {
+<span class="nc" id="L89">        return maps.containsMap(id);</span>
+    }
+
+
+    /**
+     * Retrieve the compressed map of the artwork
+     * 
+     * @param id The id of the artwork.
+     * @return The compressed map or null if it is not found.
+     * @throws SQLException
+     */
+    public CompressedMap getArtworkCompressedMap(int id) throws SQLException {
+<span class="fc" id="L101">        return maps.getMap(id);</span>
+    }
+
+    /**
+     * Save a completed piece of art. This method will also update a previous piece
+     * of art if the title matches the previous piece.
+     * 
+     * @param art    The artwork to save.
+     * @param title  The title to the artwork to save.
+     * @param player The player saving the artwork.
+     * @return A copy of the saved artwork or null if the save failed.
+     * @throws DuplicateArtworkException
+     * @throws PermissionException
+     * @throws SQLException
+     * @throws IOException
+     * @throws IllegalAccessException
+     * @throws NoSuchFieldException
+     */
+    public MapArt saveArtwork(Canvas art, String title, Player player) throws DuplicateArtworkException,
+            PermissionException, SQLException, IOException, NoSuchFieldException, IllegalAccessException {
+		// handle update case or all ready used name
+<span class="fc" id="L122">		Optional&lt;MapArt&gt; mapArt = this.getArtwork(title);</span>
+<span class="fc bfc" id="L123" title="All 2 branches covered.">		if (mapArt.isPresent()) { // same name</span>
+<span class="fc bfc" id="L124" title="All 2 branches covered.">			if (art instanceof Canvas.CanvasCopy) {</span>
+<span class="fc" id="L125">				CanvasCopy copy = CanvasCopy.class.cast(art);</span>
+<span class="fc bfc" id="L126" title="All 2 branches covered.">				if (copy.getOriginalId() == mapArt.get().getMapId()) {</span>
+<span class="fc bfc" id="L127" title="All 4 branches covered.">					if (mapArt.get().getArtist().equals(player.getUniqueId()) || player.isOp()</span>
+<span class="fc bfc" id="L128" title="All 2 branches covered.">							|| player.hasPermission(&quot;artmap.admin&quot;)) {</span>
+						// update
+<span class="fc" id="L130">						MapView newView = ArtMap.getMap(art.getMapId());</span>
+						// Force update of map data
+<span class="fc" id="L132">						mapArt.get().getMap().setMap(ArtMap.instance().getReflection().getMap(newView), true);</span>
+						// Update database
+<span class="fc" id="L134">						CompressedMap map = CompressedMap.compress(copy.getOriginalId(), newView);</span>
+<span class="fc" id="L135">						maps.updateMap(map);</span>
+<span class="fc" id="L136">						this.deleteInProgressArt(new Map(copy.getMapId())); // recycle the copy</span>
+<span class="fc" id="L137">						return mapArt.get();</span>
+					}
+<span class="fc" id="L139">                    throw new PermissionException(Lang.NO_PERM.get());</span>
+				} else {
+<span class="fc" id="L141">                    throw new DuplicateArtworkException(Lang.TITLE_USED.get());</span>
+                }
+			} else {
+<span class="fc" id="L144">				throw new DuplicateArtworkException(Lang.TITLE_USED.get());</span>
+			}
+		}
+		// new artwork
+<span class="fc" id="L148">		MapArt artwork = new MapArt(art.getMapId(), title, player.getUniqueId(),player.getName(),new Date());</span>
+<span class="fc" id="L149">		MapView mapView = ArtMap.getMap(art.getMapId());</span>
+<span class="fc" id="L150">		CompressedMap map = CompressedMap.compress(mapView);</span>
+<span class="fc" id="L151">		artworks.addArtwork(artwork);</span>
+<span class="fc bfc" id="L152" title="All 2 branches covered.">		if (maps.containsMap(map.getId())) {</span>
+<span class="fc" id="L153">			maps.updateMap(map);</span>
+		} else {
+<span class="fc" id="L155">			maps.addMap(map);</span>
+		}
+<span class="fc" id="L157">		return artwork;</span>
+    }
+    
+    /**
+     * Save artwork but fail if all ready present. This method is used when
+     * importing artwork.
+     * 
+     * @param art  The artwork to save.
+     * @param cMap The compressed map of the artwork data.
+     * @return True if the artwork was saved. False if it all ready exists.
+     * @throws DuplicateArtworkException
+     * @throws SQLException
+     */
+    public void saveArtwork(MapArt art, CompressedMap cMap) throws DuplicateArtworkException, SQLException {
+<span class="fc bfc" id="L171" title="All 2 branches covered.">        if (maps.containsMap(cMap.getId())) {</span>
+<span class="fc" id="L172">			throw new DuplicateArtworkException(MessageFormat.format(&quot;Map with ID {0} already exists.&quot;,cMap.getId()));</span>
+		} else {
+<span class="fc" id="L174">			maps.addMap(cMap);</span>
+		}
+<span class="fc" id="L176">        artworks.addArtwork(art);</span>
+<span class="fc" id="L177">    }</span>
+
+    /**
+     * Delete an artwork from the database.
+     * 
+     * @param art The piece of art to delete.
+     * @return True if deleted false otherwise.
+     * @throws SQLException
+     * @throws IllegalAccessException
+     * @throws NoSuchFieldException
+     */
+    public void deleteArtwork(MapArt art) throws SQLException, NoSuchFieldException, IllegalAccessException {
+<span class="fc" id="L189">        artworks.deleteArtwork(art.getTitle());</span>
+<span class="fc" id="L190">        maps.deleteMap(art.getMapId());</span>
+<span class="fc" id="L191">        art.getMap().setMap(new byte[Map.Size.MAX.value]);</span>
+<span class="fc" id="L192">    }</span>
+
+    /**
+     * Rename an artwork.
+     * 
+     * @param art   The artwork to rename.
+     * @param title The new title for the artwork.
+     * @return True if successful. False otherwise.
+     * @throws SQLException
+     * @throws IllegalAccessException
+     * @throws NoSuchFieldException
+     */
+    public void renameArtwork(MapArt art, String title)
+            throws SQLException, NoSuchFieldException, IllegalAccessException {
+<span class="fc" id="L206">		artworks.renameArtwork(art, title);</span>
+<span class="fc" id="L207">		art.getMap().setMap(art.getMap().readData(), true);</span>
+<span class="fc" id="L208">    }</span>
+
+    /**
+     * Check if the database contains the provided piece of art.
+     * 
+     * @param artwork     The artwork to check.
+     * @param ignoreMapId Whether to ignore the map id when checking if the artwork
+     *                    is present.
+     * @return True if the artwork is in the datbase. False otherwise.
+     * @throws SQLException
+     */
+    public boolean containsArtwork(MapArt artwork, boolean ignoreMapId) throws SQLException {
+<span class="fc" id="L220">        return artworks.containsArtwork(artwork, ignoreMapId);</span>
+    }
+
+    /**
+     * Check if the database contains an Artwork matching the provided mapId.
+     * 
+     * @param mapId The mapId to check.
+     * @return True if the database contains artwork matching the provided ID. False
+     *         if it does not.
+     * @throws SQLException
+     */
+    public boolean containsArtwork(int mapId) throws SQLException {
+<span class="fc" id="L232">        return artworks.containsMapID(mapId);</span>
+    }
+
+    /**
+     * List artwork for the provided artist.
+     * 
+     * @param artist The UUID of the artisst to lookup.
+     * @return A list of the artwork for the artist.
+     * @throws SQLException
+     */
+    public MapArt[] listMapArt(UUID artist) throws SQLException {
+<span class="fc" id="L243">        return artworks.listMapArt(artist);</span>
+    }
+
+    /**
+     * List all artwork.
+     * 
+     * @return A array of all artwrok in the database.
+     * @throws SQLException
+     */
+    public MapArt[] listMapArt() throws SQLException {
+<span class="fc" id="L253">        return artworks.listMapArt();</span>
+    }
+
+    /**
+     * List Artists placing the provided player first.
+     * 
+     * @param player The artist which is first.
+     * @return List of artists.
+     * @throws SQLException
+     */
+    public UUID[] listArtists(UUID player) throws SQLException {
+<span class="fc" id="L264">        return artworks.listArtists(player);</span>
+    }
+
+    /**
+     * List all Artists in the database.
+     * 
+     * @return List of artists.
+     * @throws SQLException
+     */
+    public UUID[] listArtists() throws SQLException {
+<span class="fc" id="L274">		return artworks.listArtists();</span>
+    }
+    
+    public String[] searchArtists(String search) {
+        //TODO: Make this pull from table in Schema V4+
+<span class="nc" id="L279">        return ArtMap.instance().getHeadsCache().searchCache(search);</span>
+    }
+
+    public MapArt[] searchArtworks(String search, UUID playerId) throws SQLException {
+<span class="nc bnc" id="L283" title="All 2 branches missed.">        if(playerId != null) {</span>
+<span class="nc" id="L284">            return this.artworks.searchArtwork(search, playerId);</span>
+        } else {
+<span class="nc" id="L286">            return this.artworks.searchArtwork(search);</span>
+        }
+    }
+
+    /**
+     * Prepare to close the database.
+     */
+    public void close() {
+<span class="nc" id="L294">        this.autosaveTask.cancel();</span>
+<span class="nc" id="L295">    }</span>
+
+    //Not assuming that createMap is threadsafe
+    /**
+     * Create a new Map and initialize it.
+     * 
+     * @return The newly created Map.
+     * @throws IllegalAccessException
+     * @throws NoSuchFieldException
+     */
+    public synchronized Map createMap() throws NoSuchFieldException, IllegalAccessException {
+        //This is where you would lookup unused map ids
+<span class="nc" id="L307">        MapView mapView = null;</span>
+<span class="nc" id="L308">        World world = Bukkit.getServer().getWorld(ArtMap.instance().getConfiguration().WORLD);</span>
+<span class="nc bnc" id="L309" title="All 2 branches missed.">        if (world != null) {</span>
+<span class="nc" id="L310">            mapView = Bukkit.getServer().createMap(world);</span>
+        } else {
+<span class="nc" id="L312">            ArtMap.instance().getLogger()</span>
+<span class="nc" id="L313">                    .severe(&quot;MapView creation Failed! World is null! Please check that the world: option is set correctly in config.yml&quot;);</span>
+        }
+        
+<span class="nc bnc" id="L316" title="All 2 branches missed.">		if (mapView == null) {</span>
+<span class="nc" id="L317">            ArtMap.instance().getLogger().severe(&quot;MapView creation Failed!&quot;);</span>
+<span class="nc" id="L318">            return null;</span>
+		}
+<span class="nc" id="L320">        ArtMap.instance().getReflection().setWorldMap(mapView, Map.BLANK_MAP);</span>
+<span class="nc" id="L321">        return new Map(mapView);</span>
+    }
+
+    /**
+     * Save an inprogress piece of art to the database.
+     * 
+     * @param map  The artwork to save.
+     * @param data The map data to save.
+     * @throws SQLException
+     * @throws IOException
+     */
+    public void saveInProgressArt(Map map, byte[] data) throws SQLException, IOException {
+<span class="fc" id="L333">        CompressedMap compressedMap = CompressedMap.compress(map.getMapId(), data);</span>
+<span class="fc bfc" id="L334" title="All 2 branches covered.">        if (maps.containsMap(map.getMapId())) {</span>
+<span class="fc" id="L335">            maps.updateMap(compressedMap);</span>
+        } else {
+<span class="fc" id="L337">            maps.addMap(compressedMap);</span>
+        } 
+<span class="fc" id="L339">    }</span>
+
+    /**
+     * Delete an inprogress piece artwork and clear its data.
+     * 
+     * @param map The artwork to delete.
+     * @throws SQLException
+     * @throws IllegalAccessException
+     * @throws NoSuchFieldException
+     */
+    public void deleteInProgressArt(Map map) throws SQLException, NoSuchFieldException, IllegalAccessException {
+        //double check we are not deleting a saved artwork with this method
+<span class="pc bpc" id="L351" title="1 of 2 branches missed.">        if(artworks.getArtwork(map.getMapId()) == null) {</span>
+            //map.setMap(Map.BLANK_MAP);
+<span class="fc" id="L353">            maps.deleteMap(map.getMapId());</span>
+            //idQueue.offer(map.getMapId());
+        }
+<span class="fc" id="L356">    }</span>
+
+     /**
+     * Restore an artwork from the database if it is found to be corrupted. Used in
+     * cases were something has happened to damage or delete an artwork's map data
+     * file.
+     * 
+     * @param map The map to restore.
+     * @param softRrepair True - attempt to repair the map but do not modify the files on disk. False - Do not attempt to repair just notify.
+     * @param hardRrepair True - attempt to repair the map even if it means writing to disk. False - Do not attempt to repair just notify.
+     * @return True if a map was found to be corruped.
+     * @throws SQLException
+     * @throws IllegalAccessException
+     * @throws NoSuchFieldException
+     */
+    public boolean restoreMap(Map map, boolean softRepair, boolean hardRepair) {
+        try {
+<span class="nc" id="L373">            return restoreMapData(map, softRepair);</span>
+<span class="nc" id="L374">        } catch (Throwable t) {</span>
+<span class="nc" id="L375">            ArtMap.instance().getLogger().log(Level.SEVERE,&quot;Map ID:&quot; + map.getMapId() + &quot; is severly corrupted!&quot; ,t);   </span>
+        }
+<span class="nc bnc" id="L377" title="All 2 branches missed.">        if(hardRepair) {</span>
+<span class="nc" id="L378">            ArtMap.instance().getLogger().warning(&quot;Repair flag set attempting dangerous repair.&quot;);</span>
+<span class="nc" id="L379">            File dataFile = map.getDataFile();</span>
+            try {
+<span class="nc" id="L381">                Files.delete(dataFile.toPath());</span>
+<span class="nc" id="L382">            } catch (NoSuchFileException nsfe) {</span>
+                //this is fine we are going to replace it with blank.dat anyway
+<span class="nc" id="L384">            } catch (IOException e) {</span>
+<span class="nc" id="L385">                ArtMap.instance().getLogger().log(Level.SEVERE,&quot;Failed deleting corruped map file.&quot; ,e);</span>
+<span class="nc" id="L386">                return true;   </span>
+<span class="nc" id="L387">            }</span>
+            try {
+<span class="nc" id="L389">                Files.copy(this.getClass().getResourceAsStream(&quot;/blank.dat&quot;), dataFile.toPath());</span>
+<span class="nc" id="L390">                ArtMap.instance().getLogger().warning(&quot;Minecraft map data file reset.  A server restart might be necessary to continue the repair.&quot;);</span>
+<span class="nc" id="L391">                return restoreMapData(map, softRepair);</span>
+<span class="nc" id="L392">            } catch (IOException e) {</span>
+<span class="nc" id="L393">                ArtMap.instance().getLogger().log(Level.SEVERE,&quot;Failed to copy blank map for data reset.&quot; ,e);</span>
+<span class="nc" id="L394">                return true;</span>
+<span class="nc" id="L395">            } catch (Throwable t) {</span>
+<span class="nc" id="L396">                ArtMap.instance().getLogger().log(Level.SEVERE,&quot;All attempts to restore the map have failed!  Please report this and post logs at https://gitlab.com/BlockStack/ArtMap/-/issues&quot; ,t);</span>
+<span class="nc" id="L397">                return true;</span>
+            }
+        }
+<span class="nc" id="L400">        return true;</span>
+    }
+
+    private boolean restoreMapData(Map map, boolean repair)
+            throws NoSuchFieldException, IllegalAccessException, SQLException {
+<span class="nc" id="L405">        byte[] data = map.readData();</span>
+<span class="nc" id="L406">            int oldMapHash = Arrays.hashCode(data);</span>
+<span class="nc bnc" id="L407" title="All 2 branches missed.">            if (maps.containsMap(map.getMapId())</span>
+<span class="nc bnc" id="L408" title="All 2 branches missed.">                    &amp;&amp; maps.getHash(map.getMapId()) != oldMapHash) {</span>
+<span class="nc" id="L409">                ArtMap.instance().getLogger().warning(&quot;Map ID:&quot; + map.getMapId() + &quot; is corrupted! &quot;);</span>
+<span class="nc bnc" id="L410" title="All 2 branches missed.">                if(repair) {</span>
+<span class="nc" id="L411">                    ArtMap.instance().getLogger().warning(&quot;Repair flag set attempting to repair.&quot;);</span>
+<span class="nc" id="L412">                    map.setMap(maps.getMap(map.getMapId()).decompressMap(), true);</span>
+                }
+<span class="nc" id="L414">                return true;</span>
+            }
+<span class="nc" id="L416">            return false;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

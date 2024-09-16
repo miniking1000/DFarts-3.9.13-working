@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EaselEffect.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Easel</a> &gt; <span class="el_source">EaselEffect.java</span></div><h1>EaselEffect.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Easel;
+
+import org.bukkit.Location;
+import org.bukkit.Particle;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.Menu.API.SoundCompat;
+
+<span class="nc" id="L9">public enum EaselEffect {</span>
+<span class="nc" id="L10">	SPAWN(location -&gt; {/*</span>
+	                    * SoundCompat.BLOCK_WOOD_HIT.play(location, 1, 0); Block floorBlock = new
+	                    * LocationHelper(location).shiftTowards(BlockFace.DOWN).getBlock();
+	                    * location.getWorld().spawnParticle(Particle.BLOCK_DUST, location, 0, 0.10d,
+	                    * 0.15d, 0.10d, 0.08d);
+	                    */
+<span class="nc" id="L16">    }),</span>
+<span class="nc" id="L17">    BREAK(location -&gt; {</span>
+<span class="nc" id="L18">        SoundCompat.BLOCK_WOOD_BREAK.play(location, 1, -1);</span>
+<span class="nc" id="L19">		playEffect(location, Particle.CLOUD);</span>
+<span class="nc" id="L20">    }),</span>
+<span class="nc" id="L21">    USE_DENIED(location -&gt; {</span>
+<span class="nc" id="L22">        SoundCompat.ENTITY_ARMORSTAND_BREAK.play(location);</span>
+<span class="nc" id="L23">		playEffect(location, Particle.CRIT);</span>
+<span class="nc" id="L24">    }),</span>
+<span class="nc" id="L25">    SAVE_ARTWORK(location -&gt; {</span>
+<span class="nc" id="L26">		playEffect(location, Particle.VILLAGER_HAPPY);</span>
+<span class="nc" id="L27">        SoundCompat.ENTITY_EXPERIENCE_ORB_PICKUP.play(location, 1, 0);</span>
+<span class="nc" id="L28">    }),</span>
+<span class="nc" id="L29">    MOUNT_CANVAS(location -&gt; {</span>
+<span class="nc" id="L30">        SoundCompat.BLOCK_CLOTH_STEP.play(location, 1, 0);</span>
+<span class="nc" id="L31">		playEffect(location, Particle.SPELL);</span>
+<span class="nc" id="L32">    }),</span>
+<span class="nc" id="L33">    START_RIDING(location -&gt; {</span>
+<span class="nc" id="L34">        SoundCompat.ENTITY_ITEM_PICKUP.play(location, 1, -3);</span>
+<span class="nc" id="L35">    }),</span>
+<span class="nc" id="L36">    STOP_RIDING(location -&gt; SoundCompat.BLOCK_LADDER_STEP.play(location, 1, -3));</span>
+
+    private final EffectPlayer effect;
+
+<span class="nc" id="L40">    EaselEffect(EffectPlayer effect) {</span>
+<span class="nc" id="L41">        this.effect = effect;</span>
+<span class="nc" id="L42">    }</span>
+
+	private static void playEffect(Location loc, Particle effect) {
+		// loc.getWorld().spawnParticle(effect, loc, 0, 0.10d, 0.15d, 0.10d, 0.02d);
+<span class="nc" id="L46">    }</span>
+
+    public void playEffect(Location location) {
+<span class="nc" id="L49">        ArtMap.instance().getScheduler().runSafely(() -&gt; effect.play(location));</span>
+<span class="nc" id="L50">    }</span>
+
+    private interface EffectPlayer {
+        void play(Location location);
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

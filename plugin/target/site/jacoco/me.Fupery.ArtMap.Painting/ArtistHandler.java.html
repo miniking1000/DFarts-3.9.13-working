@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ArtistHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Painting</a> &gt; <span class="el_source">ArtistHandler.java</span></div><h1>ArtistHandler.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Painting;
+
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.api.Config.Lang;
+import me.Fupery.ArtMap.Easel.Canvas;
+import me.Fupery.ArtMap.Easel.Easel;
+import me.Fupery.ArtMap.Easel.EaselEffect;
+import me.Fupery.ArtMap.Exception.ArtMapException;
+import me.Fupery.ArtMap.Exception.DuplicateArtworkException;
+import me.Fupery.ArtMap.Exception.PermissionException;
+import me.Fupery.ArtMap.IO.MapArt;
+import me.Fupery.ArtMap.IO.TitleFilter;
+import me.Fupery.ArtMap.IO.Database.Map;
+import me.Fupery.ArtMap.IO.Protocol.In.Packet.ArtistPacket;
+import me.Fupery.ArtMap.IO.Protocol.In.Packet.ArtistPacket.PacketInteract.InteractType;
+import me.Fupery.ArtMap.IO.Protocol.In.Packet.PacketType;
+import me.Fupery.ArtMap.Painting.Brush.BrushAction;
+import me.Fupery.ArtMap.Recipe.ArtMaterial;
+import me.Fupery.ArtMap.Utils.ItemUtils;
+import me.Fupery.ArtMap.api.Painting.IArtistHandler;
+import net.wesjd.anvilgui.AnvilGUI;
+
+public class ArtistHandler implements IArtistHandler {
+
+	private final ConcurrentHashMap&lt;UUID, ArtSession&gt; artists;
+	// todo replaced synchronised methods with read/write lock
+
+<span class="nc" id="L42">	public ArtistHandler() {</span>
+<span class="nc" id="L43">		artists = new ConcurrentHashMap&lt;&gt;();</span>
+<span class="nc" id="L44">	}</span>
+
+	public boolean handlePacket(Player sender, ArtistPacket packet) {
+<span class="nc bnc" id="L47" title="All 4 branches missed.">		if (packet == null || sender == null) {</span>
+<span class="nc" id="L48">			return true;</span>
+		}
+<span class="nc bnc" id="L50" title="All 2 branches missed.">		if (artists.containsKey(sender.getUniqueId())) {</span>
+<span class="nc" id="L51">			ArtSession session = artists.get(sender.getUniqueId());</span>
+<span class="nc" id="L52">			PacketType type = packet.getType();</span>
+
+<span class="nc bnc" id="L54" title="All 2 branches missed.">			if (type == PacketType.LOOK) {</span>
+<span class="nc" id="L55">				ArtistPacket.PacketLook packetLook = (ArtistPacket.PacketLook) packet;</span>
+<span class="nc" id="L56">				session.updatePosition(packetLook.getYaw(), packetLook.getPitch());</span>
+<span class="nc" id="L57">				return true;</span>
+				// Handle Save brush
+<span class="nc bnc" id="L59" title="All 2 branches missed.">			}  else if (type == PacketType.INTERACT) {</span>
+<span class="nc" id="L60">				InteractType click = ((ArtistPacket.PacketInteract) packet).getInteraction();</span>
+<span class="nc" id="L61">				session.paint(sender.getInventory().getItemInMainHand(),</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">						(click == InteractType.ATTACK) ? BrushAction.LEFT_CLICK : BrushAction.RIGHT_CLICK);</span>
+<span class="nc" id="L63">				session.sendMap(sender);</span>
+<span class="nc" id="L64">				return false;</span>
+			}
+<span class="nc" id="L66">		} else {</span>
+			try {
+<span class="nc" id="L68">				removePlayer(sender);</span>
+<span class="nc" id="L69">			} catch (SQLException | IOException e) {</span>
+<span class="nc" id="L70">				ArtMap.instance().getLogger().log(Level.SEVERE, &quot;Error exiting art session!&quot;, e);</span>
+<span class="nc" id="L71">			}</span>
+		}
+<span class="nc" id="L73">		return true;</span>
+	}
+
+	private boolean handlePaintBrush(Player sender, ArtSession session) {
+		// check if the paintbrush has been disabled
+<span class="nc bnc" id="L78" title="All 2 branches missed.">		if (ArtMap.instance().getConfiguration().DISABLE_PAINTBRUSH) {</span>
+<span class="nc" id="L79">			Lang.PAINTBRUSH_DISABLED.send(sender);</span>
+<span class="nc" id="L80">			return false;</span>
+		}
+
+		// handle click with paint brush in main hand causes save
+<span class="nc bnc" id="L84" title="All 4 branches missed.">		if (sender.isInsideVehicle() &amp;&amp; ArtMap.instance().getArtistHandler().containsPlayer(sender)) {</span>
+<span class="nc" id="L85">			ArtMap.instance().getScheduler().SYNC.run(() -&gt; {</span>
+<span class="nc" id="L86">				AnvilGUI.Builder builder = new AnvilGUI.Builder();</span>
+<span class="nc" id="L87">				builder.plugin(ArtMap.instance()).text(&quot;Title?&quot;).onClick((slot, snapshot) -&gt; {</span>
+					//ignore anything that isnt the output slot
+<span class="nc bnc" id="L89" title="All 2 branches missed.">					if(slot != AnvilGUI.Slot.OUTPUT) {</span>
+<span class="nc" id="L90">						return Collections.emptyList();</span>
+					}
+<span class="nc" id="L92">					String title = snapshot.getText();</span>
+<span class="nc" id="L93">					TitleFilter filter = new TitleFilter(Lang.Filter.ILLEGAL_EXPRESSIONS.get());</span>
+<span class="nc bnc" id="L94" title="All 4 branches missed.">					if (title == null || !filter.check(title)) {</span>
+<span class="nc" id="L95">						sender.sendMessage(Lang.BAD_TITLE.get());</span>
+<span class="nc" id="L96">						return Arrays.asList(AnvilGUI.ResponseAction.close());</span>
+					}
+<span class="nc" id="L98">					Easel easel = session.getEasel();</span>
+<span class="nc" id="L99">					ArtMap.instance().getScheduler().SYNC.run(() -&gt; {</span>
+						try {
+<span class="nc" id="L101">							Canvas canvas = Canvas.getCanvas(easel.getItem()).orElseThrow(()-&gt; new ArtMapException(&quot;Failed to retrieve canvas!&quot;));</span>
+<span class="nc" id="L102">							MapArt art1 = ArtMap.instance().getArtDatabase().saveArtwork(canvas, title, sender);</span>
+<span class="nc" id="L103">							ArtMap.instance().getArtistHandler().removePlayer(sender);</span>
+<span class="nc" id="L104">							easel.setItem(new ItemStack(Material.AIR));</span>
+<span class="nc" id="L105">							ItemUtils.giveItem(sender, art1.getMapItem());</span>
+<span class="nc" id="L106">							sender.sendMessage(String.format(Lang.PREFIX + Lang.SAVE_SUCCESS.get(), title));</span>
+<span class="nc" id="L107">							easel.playEffect(EaselEffect.SAVE_ARTWORK);</span>
+<span class="nc" id="L108">						} catch (DuplicateArtworkException | PermissionException e) {</span>
+<span class="nc" id="L109">							sender.sendMessage(e.getMessage());</span>
+<span class="nc" id="L110">						} catch (SQLException | IOException | NoSuchFieldException | IllegalAccessException | ArtMapException sqe) {</span>
+<span class="nc" id="L111">							sender.sendMessage(String.format(Lang.PREFIX + Lang.SAVE_FAILURE.get(), title));</span>
+<span class="nc" id="L112">							ArtMap.instance().getLogger().log(Level.SEVERE, &quot;Error saving artwork!&quot;, sqe);</span>
+<span class="nc" id="L113">						} </span>
+<span class="nc" id="L114">					});</span>
+<span class="nc" id="L115">					return Arrays.asList(AnvilGUI.ResponseAction.close());</span>
+				});
+<span class="nc" id="L117">				builder.open(sender);</span>
+<span class="nc" id="L118">			});</span>
+<span class="nc" id="L119">			return true;</span>
+		}
+<span class="nc" id="L121">		return false;</span>
+	}
+
+	public synchronized void addPlayer(final Player player, Easel easel, Map map, int yawOffset)
+			throws ReflectiveOperationException, SQLException, IOException {
+<span class="nc" id="L126">		ArtSession session = new ArtSession(player, easel, map, yawOffset);</span>
+<span class="nc bnc" id="L127" title="All 2 branches missed.">		if (session.start(player)) {</span>
+<span class="nc" id="L128">			ArtMap.instance().getProtocolManager().PACKET_RECIEVER.injectPlayer(player);</span>
+<span class="nc" id="L129">			artists.put(player.getUniqueId(), session);</span>
+<span class="nc" id="L130">			session.setActive(true);</span>
+		}
+<span class="nc" id="L132">	}</span>
+
+	public Easel getEasel(Player player) {
+<span class="nc bnc" id="L135" title="All 2 branches missed.">		if (artists.containsKey(player.getUniqueId())) {</span>
+<span class="nc" id="L136">			return artists.get(player.getUniqueId()).getEasel();</span>
+		}
+<span class="nc" id="L138">		return null;</span>
+	}
+
+	public boolean containsPlayer(Player player) {
+<span class="nc bnc" id="L142" title="All 2 branches missed.">		if(player==null) {</span>
+<span class="nc" id="L143">			return false;</span>
+		}
+<span class="nc" id="L145">		return (artists.containsKey(player.getUniqueId()));</span>
+	}
+
+	public boolean containsPlayer(UUID player) {
+<span class="nc bnc" id="L149" title="All 2 branches missed.">		if(player==null) {</span>
+<span class="nc" id="L150">			return false;</span>
+		}
+<span class="nc" id="L152">		return artists.containsKey(player);</span>
+	}
+
+	public synchronized void removePlayer(final Player player) throws SQLException, IOException {
+<span class="nc bnc" id="L156" title="All 2 branches missed.">		if (!containsPlayer(player))</span>
+<span class="nc" id="L157">			return;// just for safety :)</span>
+<span class="nc" id="L158">		ArtSession session = artists.get(player.getUniqueId());</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">		if (!session.isActive())</span>
+<span class="nc" id="L160">			return;</span>
+<span class="nc" id="L161">		artists.remove(player.getUniqueId());</span>
+<span class="nc" id="L162">		session.end(player);</span>
+<span class="nc" id="L163">		ArtMap.instance().getProtocolManager().PACKET_RECIEVER.uninjectPlayer(player);</span>
+<span class="nc" id="L164">	}</span>
+
+	public ArtSession getCurrentSession(Player player) {
+<span class="nc" id="L167">		return artists.get(player.getUniqueId());</span>
+	}
+
+	public ArtSession getCurrentSession(UUID player) {
+<span class="nc" id="L171">		return artists.get(player);</span>
+	}
+
+	private synchronized void clearPlayers() {
+<span class="nc bnc" id="L175" title="All 2 branches missed.">		for (UUID uuid : artists.keySet()) {</span>
+			try {
+<span class="nc" id="L177">				removePlayer(Bukkit.getPlayer(uuid));</span>
+<span class="nc" id="L178">			} catch (SQLException | IOException e) {</span>
+<span class="nc" id="L179">				ArtMap.instance().getLogger().log(Level.SEVERE,&quot;Error clearing players art session!&quot;,e);</span>
+<span class="nc" id="L180">			}</span>
+<span class="nc" id="L181">		}</span>
+<span class="nc" id="L182">	}</span>
+
+	public Set&lt;UUID&gt; getArtists() {
+<span class="nc" id="L185">		return artists.keySet();</span>
+	}
+
+	public void stop() {
+<span class="nc" id="L189">		clearPlayers();</span>
+<span class="nc" id="L190">		ArtMap.instance().getProtocolManager().PACKET_RECIEVER.close();</span>
+<span class="nc" id="L191">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

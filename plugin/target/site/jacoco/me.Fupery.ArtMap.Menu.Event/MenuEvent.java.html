@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MenuEvent.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Menu.Event</a> &gt; <span class="el_source">MenuEvent.java</span></div><h1>MenuEvent.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Menu.Event;
+
+import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.inventory.Inventory;
+
+public abstract class MenuEvent {
+    private final Player player;
+    private final Inventory inventory;
+
+<span class="nc" id="L11">    private MenuEvent(Player player, Inventory inventory) {</span>
+<span class="nc" id="L12">        this.player = player;</span>
+<span class="nc" id="L13">        this.inventory = inventory;</span>
+<span class="nc" id="L14">    }</span>
+
+    public Player getPlayer() {
+<span class="nc" id="L17">        return player;</span>
+    }
+
+    public Inventory getInventory() {
+<span class="nc" id="L21">        return inventory;</span>
+    }
+
+    public static class MenuCloseEvent extends MenuEvent {
+
+        private final MenuCloseReason reason;
+
+        MenuCloseEvent(Player player, Inventory inventory, MenuCloseReason reason) {
+<span class="nc" id="L29">            super(player, inventory);</span>
+<span class="nc" id="L30">            this.reason = reason;</span>
+<span class="nc" id="L31">        }</span>
+
+        MenuCloseEvent(Player player, MenuCloseReason reason) {
+<span class="nc" id="L34">            super(player, null);</span>
+<span class="nc" id="L35">            this.reason = reason;</span>
+<span class="nc" id="L36">        }</span>
+
+        public MenuCloseReason getReason() {
+<span class="nc" id="L39">            return reason;</span>
+        }
+    }
+
+    public static class MenuInteractEvent extends MenuEvent {
+        private final ClickType clickType;
+        private final int slot;
+
+        MenuInteractEvent(Player player, Inventory inventory, int slot, ClickType clickType) {
+<span class="nc" id="L48">            super(player, inventory);</span>
+<span class="nc" id="L49">            this.slot = slot;</span>
+<span class="nc" id="L50">            this.clickType = clickType;</span>
+<span class="nc" id="L51">        }</span>
+
+        public ClickType getClick() {
+<span class="nc" id="L54">            return clickType;</span>
+        }
+
+        public int getSlot() {
+<span class="nc" id="L58">            return slot;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

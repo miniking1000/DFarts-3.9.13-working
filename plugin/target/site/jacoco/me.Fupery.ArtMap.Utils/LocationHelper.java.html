@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LocationHelper.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Utils</a> &gt; <span class="el_source">LocationHelper.java</span></div><h1>LocationHelper.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Utils;
+
+import org.bukkit.Location;
+import org.bukkit.block.BlockFace;
+
+public class LocationHelper {
+
+    private final Location loc;
+
+<span class="nc" id="L10">    public LocationHelper(Location location) {</span>
+<span class="nc" id="L11">        this.loc = location.clone();</span>
+<span class="nc" id="L12">    }</span>
+
+    private Location locationAt(double x, double y, double z) {
+<span class="nc" id="L15">        return loc.clone().add(x, y, z);</span>
+    }
+
+    public Location shiftTowards(BlockFace face) {
+<span class="nc" id="L19">        return shiftTowards(face, 1);</span>
+    }
+
+    public Location shiftTowards(BlockFace face, double shift) {
+<span class="nc bnc" id="L23" title="All 11 branches missed.">        switch (face) {</span>
+            case NORTH:
+<span class="nc" id="L25">                return locationAt(0, 0, -shift);</span>
+            case EAST:
+<span class="nc" id="L27">                return locationAt(shift, 0, 0);</span>
+            case SOUTH:
+<span class="nc" id="L29">                return locationAt(0, 0, shift);</span>
+            case WEST:
+<span class="nc" id="L31">                return locationAt(-shift, 0, 0);</span>
+            case UP:
+<span class="nc" id="L33">                return locationAt(0, shift, 0);</span>
+            case DOWN:
+<span class="nc" id="L35">                return locationAt(0, -shift, 0);</span>
+            case NORTH_EAST:
+            case NORTH_NORTH_EAST:
+            case EAST_NORTH_EAST:
+<span class="nc" id="L39">                return locationAt(shift, 0, -shift);</span>
+            case NORTH_WEST:
+            case NORTH_NORTH_WEST:
+            case WEST_NORTH_WEST:
+<span class="nc" id="L43">                return locationAt(-shift, 0, -shift);</span>
+            case SOUTH_EAST:
+            case SOUTH_SOUTH_EAST:
+            case EAST_SOUTH_EAST:
+<span class="nc" id="L47">                return locationAt(shift, 0, shift);</span>
+            case SOUTH_WEST:
+            case SOUTH_SOUTH_WEST:
+            case WEST_SOUTH_WEST:
+<span class="nc" id="L51">                return locationAt(-shift, 0, shift);</span>
+            default:
+<span class="nc" id="L53">                return loc.clone();</span>
+        }
+    }
+
+    public LocationHelper centre() {
+<span class="nc" id="L58">        loc.setX(loc.getBlockX() + 0.5);</span>
+<span class="nc" id="L59">        loc.setY(loc.getBlockY() + 0.5);</span>
+<span class="nc" id="L60">        loc.setZ(loc.getBlockZ() + 0.5);</span>
+<span class="nc" id="L61">        return this;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

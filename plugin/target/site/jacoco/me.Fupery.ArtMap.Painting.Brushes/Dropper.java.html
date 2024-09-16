@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Dropper.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Painting.Brushes</a> &gt; <span class="el_source">Dropper.java</span></div><h1>Dropper.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Painting.Brushes;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.api.Config.Lang;
+import me.Fupery.ArtMap.Painting.Brush;
+import me.Fupery.ArtMap.Painting.CachedPixel;
+import me.Fupery.ArtMap.Painting.CanvasRenderer;
+import me.Fupery.ArtMap.api.Colour.ArtDye;
+
+public class Dropper extends Brush {
+    private ArrayList&lt;CachedPixel&gt; dirtyPixels;
+<span class="nc" id="L20">    private Byte dye = null;</span>
+
+    public Dropper(CanvasRenderer renderer, Player player) {
+<span class="nc" id="L23">        super(renderer, player);</span>
+<span class="nc" id="L24">        this.dirtyPixels = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L25">    }</span>
+
+    @Override
+    public List&lt;CachedPixel&gt; paint(BrushAction action, ItemStack brush, long strokeTime) {
+<span class="nc bnc" id="L29" title="All 2 branches missed.">        if (action == BrushAction.LEFT_CLICK) {</span>
+<span class="nc" id="L30">            clean();</span>
+<span class="nc" id="L31">            byte[] pixel = getCurrentPixel();</span>
+<span class="nc bnc" id="L32" title="All 2 branches missed.">            if (pixel != null) {</span>
+<span class="nc" id="L33">                dye = getPixelAt(pixel[0], pixel[1]).getColour();</span>
+<span class="nc" id="L34">                ArtDye artdye =  ArtMap.instance().getDyePalette().getDye(dye);</span>
+<span class="nc" id="L35">                Bukkit.getScheduler().runTask(ArtMap.instance(), ()-&gt;{</span>
+<span class="nc" id="L36">                    this.player.sendMessage(Lang.ITEM_SPONGE_MESSAGE.get() + &quot;: &quot; + artdye.name() + &quot; :: &quot; + artdye.getMaterial().name() + &quot; :: &quot; + dye);</span>
+<span class="nc" id="L37">                });</span>
+            }
+<span class="nc" id="L39">        } else {</span>
+<span class="nc bnc" id="L40" title="All 2 branches missed.">            if (dye == null) {</span>
+<span class="nc" id="L41">                return dirtyPixels;</span>
+            }
+<span class="nc bnc" id="L43" title="All 2 branches missed.">            if (strokeTime &gt; 250) {</span>
+<span class="nc" id="L44">                clean();</span>
+            }
+<span class="nc" id="L46">            byte[] pixel = getCurrentPixel();</span>
+
+<span class="nc bnc" id="L48" title="All 2 branches missed.">            if (pixel != null) {</span>
+
+<span class="nc bnc" id="L50" title="All 2 branches missed.">                if (dirtyPixels.size() &gt; 0) {</span>
+
+<span class="nc" id="L52">                    CachedPixel lastFlowPixel = dirtyPixels.get(dirtyPixels.size() - 1);</span>
+
+<span class="nc bnc" id="L54" title="All 2 branches missed.">                    if (lastFlowPixel.getDye() != dye) {</span>
+<span class="nc" id="L55">                        clean();</span>
+                    } else {
+<span class="nc" id="L57">                        flowBrush(lastFlowPixel.getX(), lastFlowPixel.getY(), pixel[0], pixel[1], dye);</span>
+<span class="nc" id="L58">                        dirtyPixels.add(new CachedPixel(pixel[0], pixel[1], dye));</span>
+<span class="nc" id="L59">                        return dirtyPixels;</span>
+                    }
+                }
+<span class="nc" id="L62">                getPixelAt(pixel[0], pixel[1]).setColour(dye);;</span>
+<span class="nc" id="L63">                dirtyPixels.add(new CachedPixel(pixel[0], pixel[1], dye));</span>
+            }
+        }
+<span class="nc" id="L66">        return dirtyPixels;</span>
+    }
+
+    public Byte getColour() { 
+<span class="nc" id="L70">        return this.dye;</span>
+    }
+ 
+    @Override
+    public boolean checkMaterial(ItemStack brush) {
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        return brush.getType() == Material.SPONGE;</span>
+    }
+
+    @Override
+    public void clean() {
+<span class="nc" id="L80">        dirtyPixels.clear();</span>
+<span class="nc" id="L81">    }</span>
+
+    private void flowBrush(int x, int y, int x2, int y2, Byte dye) {
+
+<span class="nc" id="L85">        int w = x2 - x;</span>
+<span class="nc" id="L86">        int h = y2 - y;</span>
+
+<span class="nc" id="L88">        int dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0;</span>
+
+<span class="nc bnc" id="L90" title="All 2 branches missed.">        if (w != 0) {</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">            dx1 = (w &gt; 0) ? 1 : -1;</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">            dx2 = (w &gt; 0) ? 1 : -1;</span>
+        }
+
+<span class="nc bnc" id="L95" title="All 2 branches missed.">        if (h != 0) {</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">            dy1 = (h &gt; 0) ? 1 : -1;</span>
+        }
+
+<span class="nc" id="L99">        int longest = Math.abs(w);</span>
+<span class="nc" id="L100">        int shortest = Math.abs(h);</span>
+
+<span class="nc bnc" id="L102" title="All 2 branches missed.">        if (!(longest &gt; shortest)) {</span>
+<span class="nc" id="L103">            longest = Math.abs(h);</span>
+<span class="nc" id="L104">            shortest = Math.abs(w);</span>
+
+<span class="nc bnc" id="L106" title="All 2 branches missed.">            if (h &lt; 0) {</span>
+<span class="nc" id="L107">                dy2 = -1;</span>
+
+<span class="nc bnc" id="L109" title="All 2 branches missed.">            } else if (h &gt; 0) {</span>
+<span class="nc" id="L110">                dy2 = 1;</span>
+            }
+<span class="nc" id="L112">            dx2 = 0;</span>
+        }
+<span class="nc" id="L114">        int numerator = longest &gt;&gt; 1;</span>
+
+<span class="nc bnc" id="L116" title="All 2 branches missed.">        for (int i = 0; i &lt;= longest; i++) {</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">            if (!dirtyPixels.contains(new CachedPixel(x, y, dye))) {</span>
+<span class="nc" id="L118">                getPixelAt(x, y).setColour(dye);</span>
+            }
+<span class="nc" id="L120">            numerator += shortest;</span>
+
+<span class="nc bnc" id="L122" title="All 2 branches missed.">            if (!(numerator &lt; longest)) {</span>
+<span class="nc" id="L123">                numerator -= longest;</span>
+<span class="nc" id="L124">                x += dx1;</span>
+<span class="nc" id="L125">                y += dy1;</span>
+
+            } else {
+<span class="nc" id="L128">                x += dx2;</span>
+<span class="nc" id="L129">                y += dy2;</span>
+            }
+        }
+<span class="nc" id="L132">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Search.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Command</a> &gt; <span class="el_source">Search.java</span></div><h1>Search.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Command;
+
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.logging.Level;
+
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.api.Config.Lang;
+import me.Fupery.ArtMap.IO.MapArt;
+import me.Fupery.ArtMap.Menu.API.TextPagination;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
+
+public class Search extends AsyncCommand {
+
+    Search() {
+<span class="nc" id="L27">        super(null, &quot;/art search [--player &lt;playername&gt; | --mine] &lt;searchterm&gt;&quot;, false);</span>
+<span class="nc" id="L28">    }</span>
+
+    @Override
+    public void runCommand(CommandSender sender, String[] args, ReturnMessage msg) {
+        // args[0] is search
+<span class="nc bnc" id="L33" title="All 2 branches missed.">        if (args.length &lt; 2) {</span>
+<span class="nc" id="L34">            msg.message = Lang.SEARCH_USAGE.get();</span>
+<span class="nc" id="L35">            return;</span>
+        }
+
+<span class="nc" id="L38">        String searchTerm = &quot;&quot;;</span>
+<span class="nc" id="L39">        String playerName = null;</span>
+<span class="nc" id="L40">        UUID playerId = null;</span>
+<span class="nc" id="L41">        boolean mine = false;</span>
+<span class="nc" id="L42">        Player pSender = (Player) sender;</span>
+
+<span class="nc bnc" id="L44" title="All 2 branches missed.">        if(&quot;--mine&quot;.equals(args[1].trim())) {</span>
+<span class="nc" id="L45">            mine = true;</span>
+<span class="nc bnc" id="L46" title="All 2 branches missed.">            if(args.length&gt;2) {</span>
+<span class="nc" id="L47">                searchTerm = args[2].trim();</span>
+            }
+<span class="nc" id="L49">            playerId = pSender.getUniqueId();</span>
+<span class="nc bnc" id="L50" title="All 2 branches missed.">        } else if(&quot;--player&quot;.equals(args[1].trim())) {</span>
+<span class="nc" id="L51">            playerName = args[2].trim();</span>
+<span class="nc" id="L52">            Optional&lt;UUID&gt; optPlayerId = ArtMap.instance().getHeadsCache().getPlayerUUID(playerName);</span>
+<span class="nc bnc" id="L53" title="All 2 branches missed.">            if(!optPlayerId.isPresent()) {</span>
+<span class="nc" id="L54">                msg.message = &quot;Player does not exist. :: &quot; + playerName;</span>
+<span class="nc" id="L55">                return;</span>
+            } else {
+<span class="nc" id="L57">                playerId = optPlayerId.get();</span>
+            }
+<span class="nc bnc" id="L59" title="All 2 branches missed.">            if(args.length&gt;3) {</span>
+<span class="nc" id="L60">                searchTerm = args[3].trim();</span>
+            }
+<span class="nc" id="L62">        } else {</span>
+<span class="nc" id="L63">            searchTerm = args[1];</span>
+        }
+
+        
+<span class="nc" id="L67">        MapArt[] art = new MapArt[0];</span>
+        try {
+<span class="nc" id="L69">            art = ArtMap.instance().getArtDatabase().searchArtworks(searchTerm,playerId);</span>
+<span class="nc" id="L70">        } catch (SQLException e) {</span>
+<span class="nc" id="L71">            Lang.GENERIC_ERROR.send(sender);</span>
+<span class="nc" id="L72">            ArtMap.instance().getLogger().log(Level.SEVERE,&quot;SQL Exception on search.&quot;,e);</span>
+<span class="nc" id="L73">        }</span>
+
+<span class="nc" id="L75">        List&lt;TextComponent&gt; text = new ArrayList&lt;&gt;();</span>
+
+<span class="nc bnc" id="L77" title="All 4 branches missed.">        if(!mine &amp;&amp; playerName == null) {</span>
+<span class="nc" id="L78">            String[] artists = ArtMap.instance().getArtDatabase().searchArtists(searchTerm);</span>
+<span class="nc" id="L79">            text.add(new TextComponent(&quot;------------- &quot; + Lang.SEARCH_ARTISTS.get() + &quot;: &quot; + artists.length + &quot; ---------------&quot;));</span>
+            //clickable links for each artist
+<span class="nc bnc" id="L81" title="All 2 branches missed.">            for(String artist : artists) {</span>
+<span class="nc" id="L82">                text.add(this.clickableArtist(artist));</span>
+            }
+        }
+<span class="nc" id="L85">        text.add(new TextComponent(&quot;------------- &quot; + Lang.SEARCH_ARTWORKS.get() +&quot;: &quot; + art.length + &quot; ---------------&quot;));</span>
+        //clickable links for each artwork
+<span class="nc bnc" id="L87" title="All 2 branches missed.">        for(MapArt artwork : art) {</span>
+<span class="nc" id="L88">            text.add(this.clickableArtwork(pSender,artwork));</span>
+        }
+
+<span class="nc" id="L91">        TextPagination pages = new TextPagination(text.toArray(new TextComponent[text.size()]), Lang.SEARCH_TITLE.get(), pSender.getUniqueId());</span>
+<span class="nc" id="L92">        Page.startPagination(pSender, pages);</span>
+<span class="nc" id="L93">    }</span>
+
+    private TextComponent clickableArtist(String artist) {
+<span class="nc" id="L96">        TextComponent text = new TextComponent(&quot;[ &quot;+ artist + &quot; ]&quot;);</span>
+<span class="nc" id="L97">        text.setBold(true);</span>
+<span class="nc" id="L98">        text.setColor(ChatColor.GRAY);</span>
+<span class="nc" id="L99">        text.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, &quot;/artmap search --player &quot; + artist));</span>
+<span class="nc" id="L100">        text.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new BaseComponent[]{ new TextComponent(Lang.SEARCH_ARTIST_HOVER.get()) }));</span>
+<span class="nc" id="L101">        return text;</span>
+    }
+
+    private TextComponent clickableArtwork(Player user, MapArt art) {
+<span class="nc" id="L105">        TextComponent text = new TextComponent(art.getTitle());</span>
+<span class="nc" id="L106">        text.setColor(ChatColor.AQUA);</span>
+<span class="nc" id="L107">        text.addExtra(ChatColor.WHITE + Lang.SEARCH_BY.get() + ChatColor.GRAY + art.getArtistName());</span>
+<span class="nc" id="L108">        int textLen = art.getTitle().length() + art.getArtistName().length();</span>
+<span class="nc" id="L109">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">        for(int i=textLen; i&lt;(50-textLen); i++) {</span>
+<span class="nc" id="L111">            sb.append(&quot;.&quot;);</span>
+        }
+<span class="nc" id="L113">        text.addExtra(ChatColor.DARK_GRAY+sb.toString());</span>
+<span class="nc" id="L114">        TextComponent previewButton = new TextComponent(&quot; [&quot; + Lang.SEARCH_PREVIEW_BUTTON.get() + &quot;] &quot;);</span>
+<span class="nc" id="L115">        previewButton.setColor(ChatColor.YELLOW);</span>
+<span class="nc" id="L116">        previewButton.setBold(true);</span>
+<span class="nc" id="L117">        previewButton.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Arrays.asList(new TextComponent(Lang.SEARCH_PREVIEW_HOVER.get())).toArray(new BaseComponent[0])));</span>
+<span class="nc" id="L118">        previewButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, &quot;/art preview \&quot;&quot; + art.getTitle() + &quot;\&quot;&quot;));</span>
+<span class="nc" id="L119">        text.addExtra(previewButton);</span>
+<span class="nc bnc" id="L120" title="All 2 branches missed.">        if(user.hasPermission(&quot;artmap.admin&quot;)) {</span>
+            //&quot;/art give &lt;player&gt; &lt;easel|canvas|paintbrush|artwork:&lt;title&gt;&gt; [amount]&quot;
+<span class="nc" id="L122">            TextComponent giveButton = new TextComponent(&quot; [&quot; + Lang.SEARCH_GIVE_BUTTON.get() + &quot;] &quot;);</span>
+<span class="nc" id="L123">            giveButton.setColor(ChatColor.DARK_GREEN);</span>
+<span class="nc" id="L124">            giveButton.setBold(true);</span>
+<span class="nc" id="L125">            giveButton.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Arrays.asList(new TextComponent(Lang.SEARCH_GIVE_HOVER.get())).toArray(new BaseComponent[0])));</span>
+<span class="nc" id="L126">            giveButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, &quot;/art give &quot; + user.getName() + &quot; \&quot;artwork:&quot; + art.getTitle() +&quot;\&quot;&quot;));</span>
+<span class="nc" id="L127">            text.addExtra(giveButton);</span>
+        }
+<span class="nc" id="L129">        return text;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

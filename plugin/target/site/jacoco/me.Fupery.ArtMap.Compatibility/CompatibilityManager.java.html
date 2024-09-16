@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CompatibilityManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Compatibility</a> &gt; <span class="el_source">CompatibilityManager.java</span></div><h1>CompatibilityManager.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Compatibility;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.Compatibility.impl.ASkyBlockCompat;
+import me.Fupery.ArtMap.Compatibility.impl.BentoBoxCompat;
+import me.Fupery.ArtMap.Compatibility.impl.CMICompat;
+import me.Fupery.ArtMap.Compatibility.impl.GriefDefenderCompat;
+import me.Fupery.ArtMap.Compatibility.impl.GriefPreventionCompat;
+import me.Fupery.ArtMap.Compatibility.impl.HeadRetrieval_1_13;
+import me.Fupery.ArtMap.Compatibility.impl.HeadRetrieval_1_20_2;
+import me.Fupery.ArtMap.Compatibility.impl.MarriageMasterCompat;
+import me.Fupery.ArtMap.Compatibility.impl.Palette_1_13;
+import me.Fupery.ArtMap.Compatibility.impl.Palette_1_14;
+import me.Fupery.ArtMap.Compatibility.impl.Palette_1_16;
+import me.Fupery.ArtMap.Compatibility.impl.Palette_1_18;
+import me.Fupery.ArtMap.Compatibility.impl.EssentialsCompat;
+import me.Fupery.ArtMap.Compatibility.impl.PlotSquared4Compat;
+import me.Fupery.ArtMap.Compatibility.impl.PlotSquared5Compat;
+import me.Fupery.ArtMap.Compatibility.impl.PlotSquared6Compat;
+import me.Fupery.ArtMap.Compatibility.impl.PlotSquared7Compat;
+import me.Fupery.ArtMap.Compatibility.impl.RedProtectCompat;
+import me.Fupery.ArtMap.Compatibility.impl.ResidenceCompat;
+import me.Fupery.ArtMap.Compatibility.impl.SabreFactionsCompat;
+import me.Fupery.ArtMap.Compatibility.impl.TownyCompat;
+import me.Fupery.ArtMap.Compatibility.impl.USkyBlockCompat;
+import me.Fupery.ArtMap.Compatibility.impl.WorldGuardCompat;
+import me.Fupery.ArtMap.api.IArtMap;
+import me.Fupery.ArtMap.api.Colour.Palette;
+import me.Fupery.ArtMap.api.Compatability.EventListener;
+import me.Fupery.ArtMap.api.Compatability.IHeadsRetriever;
+import me.Fupery.ArtMap.api.Compatability.ReflectionHandler;
+import me.Fupery.ArtMap.api.Compatability.RegionHandler;
+import me.Fupery.ArtMap.api.Easel.ClickType;
+import me.Fupery.ArtMap.api.Utils.Version;
+import me.Fupery.ArtMap.api.Utils.VersionHandler;
+import me.Fupery.ArtMap.api.Utils.VersionHandler.BukkitVersion;
+
+public class CompatibilityManager implements RegionHandler {
+    private List&lt;RegionHandler&gt; regionHandlers;
+    private List&lt;EventListener&gt; eventListeners;
+    private ReflectionHandler reflectionHandler;
+    private Palette palette;
+    private IHeadsRetriever headsRetriever;
+
+<span class="nc" id="L55">    public CompatibilityManager(JavaPlugin plugin) {</span>
+<span class="nc" id="L56">        regionHandlers = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L57">        eventListeners = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L58">        loadRegionHandler(&quot;WorldGuard&quot;,WorldGuardCompat.class, &quot;WorldGuard 7&quot;);</span>
+        //Disable as it is 1.12 and lower
+        //loadRegionHandler(&quot;Factions&quot;,FactionsCompat.class, &quot;Factions&quot;);
+<span class="nc" id="L61">        loadRegionHandler(&quot;Factions&quot;,SabreFactionsCompat.class, &quot;Sabre Factions&quot;);</span>
+<span class="nc" id="L62">        loadRegionHandler(&quot;GriefDefender&quot;,GriefDefenderCompat.class,&quot;Grief Defender&quot;);</span>
+<span class="nc" id="L63">        loadRegionHandler(&quot;GriefPrevention&quot;,GriefPreventionCompat.class,&quot;Grief Prevention&quot;);</span>
+<span class="nc" id="L64">        loadRegionHandler(&quot;RedProtect&quot;,RedProtectCompat.class, &quot;Red Protect&quot;);</span>
+        //likely can be removed as 1.12 and lower
+<span class="nc" id="L66">        loadRegionHandler(&quot;ASkyBlock&quot;,ASkyBlockCompat.class, &quot;ASkyBlock&quot;);</span>
+<span class="nc" id="L67">        loadRegionHandler(&quot;uSkyBlock&quot;,USkyBlockCompat.class, &quot;uSkyBlock&quot;);</span>
+<span class="nc" id="L68">        loadRegionHandler(&quot;BentoBox&quot;,BentoBoxCompat.class, &quot;BentoBox/BSkyBlock&quot;);</span>
+<span class="nc" id="L69">        loadRegionHandler(&quot;PlotSquared&quot;,PlotSquared4Compat.class, &quot;Plot Squared 4&quot;, new Version(4), new Version(5));</span>
+<span class="nc" id="L70">        loadRegionHandler(&quot;PlotSquared&quot;,PlotSquared5Compat.class, &quot;Plot Squared 5&quot;, new Version(5), new Version(6));</span>
+<span class="nc" id="L71">        loadRegionHandler(&quot;PlotSquared&quot;,PlotSquared6Compat.class, &quot;Plot Squared 6&quot;, new Version(6), new Version(7));</span>
+<span class="nc" id="L72">        loadRegionHandler(&quot;PlotSquared&quot;,PlotSquared7Compat.class, &quot;Plot Squared 7&quot;, new Version(7), new Version(9999));</span>
+<span class="nc" id="L73">        loadRegionHandler(&quot;Residence&quot;,ResidenceCompat.class, &quot;Residence&quot;);</span>
+<span class="nc" id="L74">        loadRegionHandler(&quot;Towny&quot;,TownyCompat.class, &quot;Towny&quot;);</span>
+<span class="nc" id="L75">        reflectionHandler = loadReflectionHandler();</span>
+        //Event handlers
+<span class="nc" id="L77">        loadEventListener(&quot;MarriageMaster&quot;, MarriageMasterCompat.class, &quot;Marriage Master&quot;);</span>
+<span class="nc" id="L78">        loadEventListener(&quot;CMI&quot;, CMICompat.class, &quot;CMI&quot;);</span>
+<span class="nc" id="L79">        loadEventListener(&quot;Essentials&quot;, EssentialsCompat.class, &quot;Essentials&quot;);</span>
+
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        if (!(reflectionHandler instanceof VanillaReflectionHandler))</span>
+<span class="nc" id="L82">            plugin.getLogger().info(String.format(&quot;%s reflection handler enabled.&quot;,</span>
+<span class="nc" id="L83">                    reflectionHandler.getClass().getSimpleName().replace(&quot;Compat&quot;, &quot;&quot;)));</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">        for (RegionHandler regionHandler : regionHandlers) {</span>
+<span class="nc" id="L85">            plugin.getLogger().info(String.format(&quot;%s hooks enabled.&quot;,</span>
+<span class="nc" id="L86">                    regionHandler.getClass().getSimpleName().replace(&quot;Compat&quot;, &quot;&quot;)));</span>
+<span class="nc" id="L87">        }</span>
+
+        //figure out palette version to load
+<span class="nc" id="L90">        BukkitVersion version = VersionHandler.checkVersion();</span>
+<span class="nc bnc" id="L91" title="All 2 branches missed.">        if(version.isLessOrEqualTo(BukkitVersion.v1_13)) {</span>
+<span class="nc" id="L92">            palette = new Palette_1_13();</span>
+<span class="nc bnc" id="L93" title="All 2 branches missed.">        } else if(version.isLessThan(BukkitVersion.v1_16)) {</span>
+<span class="nc" id="L94">            palette = new Palette_1_14();</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">        } else if(version.isLessThan(BukkitVersion.v1_18)) {</span>
+<span class="nc" id="L96">            palette = new Palette_1_16();</span>
+        } else {
+<span class="nc" id="L98">            palette = new Palette_1_18();</span>
+        }
+
+        //which head loading code should we be using
+<span class="nc bnc" id="L102" title="All 2 branches missed.">        if(version.isLessThan(BukkitVersion.v1_20_2)) {</span>
+<span class="nc" id="L103">            headsRetriever = new HeadRetrieval_1_13();</span>
+        } else {
+<span class="nc" id="L105">            headsRetriever = new HeadRetrieval_1_20_2();</span>
+        }
+<span class="nc" id="L107">    }</span>
+
+    public boolean isPluginLoaded(String pluginName) {
+<span class="nc" id="L110">        JavaPlugin plugin = (JavaPlugin) Bukkit.getPluginManager().getPlugin(pluginName);</span>
+<span class="nc bnc" id="L111" title="All 4 branches missed.">        return plugin != null &amp;&amp; plugin.isEnabled();</span>
+    }
+
+    @Override
+    public boolean checkBuildAllowed(Player player, Location location) {
+<span class="nc bnc" id="L116" title="All 2 branches missed.">        for (RegionHandler regionHandler : regionHandlers) {</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">            if (!regionHandler.checkBuildAllowed(player, location)) return false;</span>
+<span class="nc" id="L118">        }</span>
+<span class="nc" id="L119">        return true;</span>
+    }
+
+    @Override
+    public boolean checkInteractAllowed(Player player, Entity entity, ClickType click) {
+<span class="nc bnc" id="L124" title="All 2 branches missed.">        if (checkBuildAllowed(player, entity.getLocation())) return true; //builders can override</span>
+<span class="nc bnc" id="L125" title="All 2 branches missed.">        for (RegionHandler regionHandler : regionHandlers) {</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">            if (!regionHandler.checkInteractAllowed(player, entity, click)) return false;</span>
+<span class="nc" id="L127">        }</span>
+<span class="nc" id="L128">        return true;</span>
+    }
+
+    public ReflectionHandler getReflectionHandler() {
+<span class="nc" id="L132">        return reflectionHandler;</span>
+    }
+
+    @Override
+    public boolean isLoaded() {
+<span class="nc" id="L137">        return true;</span>
+    }
+
+    public Palette getPalette() {
+<span class="nc" id="L141">        return this.palette;</span>
+    }
+
+    public IHeadsRetriever getHeadsRetriever() {
+<span class="nc" id="L145">        return headsRetriever;</span>
+    }
+
+    private ReflectionHandler loadReflectionHandler() {
+<span class="nc" id="L149">        ReflectionHandler denizenHandler = new DenizenCompat();</span>
+<span class="nc bnc" id="L150" title="All 2 branches missed.">        if (denizenHandler.isLoaded()) return denizenHandler;</span>
+<span class="nc" id="L151">        ReflectionHandler iDisguiseHandler = new iDisguiseCompat();</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">        if (iDisguiseHandler.isLoaded()) return iDisguiseHandler;</span>
+<span class="nc" id="L153">        return new VanillaReflectionHandler();</span>
+    }
+
+    private void loadRegionHandler(String pluginName, Class&lt;? extends RegionHandler&gt; handlerClass, String description) {
+        try {
+<span class="nc bnc" id="L158" title="All 2 branches missed.">            if (ArtMap.instance().getServer().getPluginManager().isPluginEnabled(pluginName)) {</span>
+<span class="nc" id="L159">                RegionHandler handler = handlerClass.getConstructor().newInstance();</span>
+<span class="nc bnc" id="L160" title="All 2 branches missed.">                if (handler.isLoaded()) {</span>
+<span class="nc" id="L161">                    regionHandlers.add(handler);</span>
+                }
+<span class="nc" id="L163">            } else {</span>
+<span class="nc" id="L164">                ArtMap.instance().getLogger().info(description + &quot; not detected.  Hooks skipped.&quot;);</span>
+            }
+<span class="nc" id="L166">        } catch (Throwable exception) {</span>
+<span class="nc" id="L167">            ArtMap.instance().getLogger().log(Level.SEVERE,&quot;Exception loading region handler for &quot; + description + </span>
+                &quot; please create a ticket on the Artmap gitlab page with the version of the plugin you are using!&quot;,exception);
+<span class="nc" id="L169">        }</span>
+<span class="nc" id="L170">    }</span>
+
+    /**
+     * Load the region handler if pluginName is loaded and meets ther version requirements.
+     * @param pluginName The plugin to check.
+     * @param handlerClass The class to load if it neets requierments.
+     * @param description The description to print when loaded or fails.
+     * @param lower The lowest version [inclusive] to load the handler.
+     * @param upper The Upper version [exclusive] to load the handler.
+     */
+    private void loadRegionHandler(String pluginName, Class&lt;? extends RegionHandler&gt; handlerClass, String description, Version lower, Version upper) {
+        try {
+<span class="nc bnc" id="L182" title="All 2 branches missed.">            if (ArtMap.instance().getServer().getPluginManager().isPluginEnabled(pluginName)) {</span>
+<span class="nc" id="L183">                Version pluginVersion = new Version(ArtMap.instance().getServer().getPluginManager().getPlugin(pluginName));</span>
+<span class="nc bnc" id="L184" title="All 4 branches missed.">                if(lower.compareTo(pluginVersion) == 0 &amp;&amp; upper.compareTo(pluginVersion) &gt; 0) {</span>
+<span class="nc" id="L185">                    RegionHandler handler = handlerClass.getConstructor().newInstance();</span>
+<span class="nc bnc" id="L186" title="All 2 branches missed.">                    if (handler.isLoaded()) {</span>
+<span class="nc" id="L187">                        regionHandlers.add(handler);</span>
+                    }
+                }
+<span class="nc" id="L190">            } else {</span>
+<span class="nc" id="L191">                ArtMap.instance().getLogger().info(description + &quot; not detected.  Hooks skipped.&quot;);</span>
+            }
+<span class="nc" id="L193">        } catch (Throwable exception) {</span>
+<span class="nc" id="L194">            ArtMap.instance().getLogger().log(Level.SEVERE,&quot;Exception loading region handler for &quot; + description + </span>
+                &quot; please create a ticket on the Artmap gitlab page with the version of the plugin you are using!&quot;,exception);
+<span class="nc" id="L196">        }</span>
+<span class="nc" id="L197">    }</span>
+
+    private void loadEventListener(String pluginName, Class&lt;? extends EventListener&gt; handlerClass, String description) {
+        try {
+<span class="nc bnc" id="L201" title="All 2 branches missed.">            if (ArtMap.instance().getServer().getPluginManager().isPluginEnabled(pluginName)) {</span>
+<span class="nc" id="L202">                EventListener handler = handlerClass.getConstructor(IArtMap.class).newInstance(ArtMap.instance());</span>
+<span class="nc bnc" id="L203" title="All 2 branches missed.">                if (handler.isLoaded()) {</span>
+<span class="nc" id="L204">                    eventListeners.add(handler);</span>
+                }
+<span class="nc" id="L206">            } else {</span>
+<span class="nc" id="L207">                ArtMap.instance().getLogger().info(description + &quot; not detected.  Hooks skipped.&quot;);</span>
+            }
+<span class="nc" id="L209">        } catch (Throwable exception) {</span>
+<span class="nc" id="L210">            ArtMap.instance().getLogger().log(Level.SEVERE,&quot;Exception loading event listener for &quot; + description + </span>
+                &quot; please create a ticket on the Artmap gitlab page with the version of the plugin you are using!&quot;,exception);
+<span class="nc" id="L212">        }</span>
+<span class="nc" id="L213">    }</span>
+
+
+    @Override
+    public String toString() {
+<span class="nc" id="L218">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L219">        sb.append(&quot;Plugin compatability hooks: &quot;);</span>
+<span class="nc bnc" id="L220" title="All 2 branches missed.">        for (RegionHandler regionHandler : regionHandlers) {</span>
+<span class="nc" id="L221">            sb.append(regionHandler.getClass().getSimpleName() + &quot; [LOADED:&quot; + regionHandler.isLoaded() + &quot;], &quot;);</span>
+<span class="nc" id="L222">        }</span>
+<span class="nc bnc" id="L223" title="All 2 branches missed.">        for (EventListener eventHandler : eventListeners) {</span>
+<span class="nc" id="L224">            sb.append(eventHandler.getClass().getSimpleName() + &quot; [LOADED:&quot; + eventHandler.isLoaded() + &quot;], &quot;);</span>
+<span class="nc" id="L225">        }</span>
+<span class="nc" id="L226">        sb.append(&quot;Reflection Handler: &quot; + reflectionHandler.getClass().getSimpleName());</span>
+<span class="nc" id="L227">        sb.append(&quot;Palette Version: &quot; + palette.getClass().getSimpleName());</span>
+<span class="nc" id="L228">        return sb.toString();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

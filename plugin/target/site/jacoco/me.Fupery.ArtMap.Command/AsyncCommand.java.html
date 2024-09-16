@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AsyncCommand.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Command</a> &gt; <span class="el_source">AsyncCommand.java</span></div><h1>AsyncCommand.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Command;
+
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.api.Config.Lang;
+
+abstract class AsyncCommand {
+
+    protected final String usage;
+    private final String permission;
+    private final boolean consoleAllowed;
+
+<span class="nc" id="L15">    AsyncCommand(String permission, String usage, boolean consoleAllowed) {</span>
+<span class="nc" id="L16">        this.permission = permission;</span>
+<span class="nc" id="L17">        this.consoleAllowed = consoleAllowed;</span>
+
+<span class="nc bnc" id="L19" title="All 2 branches missed.">        if (usage == null) {</span>
+<span class="nc" id="L20">            throw new IllegalArgumentException(&quot;Usage must not be null&quot;);</span>
+        }
+<span class="nc" id="L22">        this.usage = usage;</span>
+<span class="nc" id="L23">    }</span>
+
+    void runPlayerCommand(final CommandSender sender, final String args[]) {
+
+<span class="nc" id="L27">        ArtMap.instance().getScheduler().ASYNC.run(() -&gt; {</span>
+<span class="nc" id="L28">            ReturnMessage returnMsg = new ReturnMessage(sender, null);</span>
+
+<span class="nc bnc" id="L30" title="All 4 branches missed.">            if (permission != null &amp;&amp; !sender.hasPermission(permission)) {</span>
+<span class="nc" id="L31">                returnMsg.message = Lang.NO_PERM.get();</span>
+
+<span class="nc bnc" id="L33" title="All 4 branches missed.">            } else if (!consoleAllowed &amp;&amp; !(sender instanceof Player)) {</span>
+<span class="nc" id="L34">                returnMsg.message = Lang.NO_CONSOLE.get();</span>
+
+            } else {
+<span class="nc" id="L37">                runCommand(sender, args, returnMsg);</span>
+            }
+
+<span class="nc bnc" id="L40" title="All 2 branches missed.">            if (returnMsg.message != null) {</span>
+<span class="nc" id="L41">                ArtMap.instance().getScheduler().SYNC.run(returnMsg);</span>
+            }
+<span class="nc" id="L43">        });</span>
+<span class="nc" id="L44">    }</span>
+
+    public abstract void runCommand(CommandSender sender, String[] args, ReturnMessage msg);
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

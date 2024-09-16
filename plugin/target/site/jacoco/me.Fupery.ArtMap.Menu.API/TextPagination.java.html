@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TextPagination.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Menu.API</a> &gt; <span class="el_source">TextPagination.java</span></div><h1>TextPagination.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Menu.API;
+
+import java.util.UUID;
+
+import org.bukkit.entity.Player;
+
+import me.Fupery.ArtMap.api.Config.Lang;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.ClickEvent.Action;
+
+public class TextPagination {
+    UUID id;
+    static final int MAX_LINES= 19;
+    static final int MAX_COLUMNS = 60;
+    String headerText;
+    int lastpage;
+    int currentPage;
+
+    TextComponent[] text;
+
+<span class="nc" id="L23">    public TextPagination(TextComponent[] text, String headerText, UUID playerId) {</span>
+<span class="nc" id="L24">        this.id = playerId;</span>
+<span class="nc" id="L25">        this.text = text;</span>
+<span class="nc" id="L26">        this.currentPage = 1;</span>
+<span class="nc" id="L27">        this.headerText = headerText;</span>
+<span class="nc" id="L28">        this.lastpage = (text.length/MAX_LINES)+1; //0 pages doesnt make much sense</span>
+<span class="nc" id="L29">    }</span>
+    
+
+    public void sendPlayerNextPage(Player player) {
+<span class="nc bnc" id="L33" title="All 2 branches missed.">        if(currentPage&lt;lastpage) {</span>
+<span class="nc" id="L34">            currentPage++;</span>
+<span class="nc" id="L35">            this.sendPlayerPage(player, currentPage);</span>
+        }
+<span class="nc" id="L37">    }</span>
+
+    public void sendPlayerPrevPage(Player player) {
+<span class="nc bnc" id="L40" title="All 2 branches missed.">        if(currentPage&gt;1) {</span>
+<span class="nc" id="L41">            currentPage--;</span>
+<span class="nc" id="L42">            this.sendPlayerPage(player, currentPage);</span>
+        }
+<span class="nc" id="L44">    }</span>
+
+    public void sendPlayerPage(Player player, int page) {
+<span class="nc" id="L47">        this.currentPage = page;</span>
+<span class="nc" id="L48">        int startIndex = MAX_LINES * (page-1);</span>
+<span class="nc" id="L49">        player.spigot().sendMessage(buildHeader());</span>
+<span class="nc bnc" id="L50" title="All 4 branches missed.">        for(int i = startIndex; i&lt;text.length &amp;&amp; (i-startIndex)&lt;MAX_LINES; i++) {</span>
+<span class="nc" id="L51">            player.spigot().sendMessage(text[i]);</span>
+        }
+<span class="nc" id="L53">    }</span>
+
+    public UUID getId() {
+<span class="nc" id="L56">        return this.id;</span>
+    }
+
+    public TextComponent buildHeader() {
+<span class="nc" id="L60">        TextComponent header = new TextComponent();</span>
+        //back arrows 
+<span class="nc bnc" id="L62" title="All 2 branches missed.">        if(currentPage&gt;1) {</span>
+<span class="nc" id="L63">            TextComponent backArrow = new TextComponent(&quot; &lt;&lt; &quot;);</span>
+<span class="nc" id="L64">            backArrow.setColor(ChatColor.RED);</span>
+<span class="nc" id="L65">            backArrow.setBold(true);</span>
+<span class="nc" id="L66">            backArrow.setClickEvent(new ClickEvent(Action.RUN_COMMAND, &quot;/artmap page &quot; + id.toString() + &quot; &quot; + (currentPage-1)));</span>
+<span class="nc" id="L67">            header.addExtra(backArrow);</span>
+<span class="nc" id="L68">        } else {</span>
+<span class="nc" id="L69">            header.addExtra(ChatColor.GRAY + &quot; **&quot;);</span>
+        }
+        // current page text
+<span class="nc" id="L72">        String middle = ChatColor.GOLD + headerText + &quot; :: &quot; + ChatColor.YELLOW + Lang.SEARCH_PAGE.get() + &quot; &quot; </span>
+<span class="nc" id="L73">            + ChatColor.RED +  currentPage + Lang.SEARCH_PAGE_SEPERATOR.get() + lastpage;</span>
+            
+<span class="nc" id="L75">        int edgeSize = ((MAX_COLUMNS - middle.length())/2)-4;</span>
+<span class="nc" id="L76">        StringBuilder sb = new StringBuilder(edgeSize);</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">        for(int i=0; i&lt;edgeSize;i++) {</span>
+<span class="nc" id="L78">            sb.append(ChatColor.GRAY + &quot;*&quot;);</span>
+        }
+<span class="nc" id="L80">        String edge = sb.toString();</span>
+<span class="nc" id="L81">        header.addExtra(edge + middle + edge);</span>
+        //forward arrow
+<span class="nc bnc" id="L83" title="All 2 branches missed.">        if(currentPage&lt;lastpage) {</span>
+<span class="nc" id="L84">            TextComponent forwardArrow = new TextComponent(&quot; &gt;&gt; &quot;);</span>
+<span class="nc" id="L85">            forwardArrow.setColor(ChatColor.GREEN);</span>
+<span class="nc" id="L86">            forwardArrow.setBold(true);</span>
+<span class="nc" id="L87">            forwardArrow.setClickEvent(new ClickEvent(Action.RUN_COMMAND, &quot;/artmap page &quot; + id.toString() + &quot; &quot; + (currentPage+1)));</span>
+<span class="nc" id="L88">            header.addExtra(forwardArrow);</span>
+<span class="nc" id="L89">        } else {</span>
+<span class="nc" id="L90">            header.addExtra(ChatColor.GRAY + &quot;**&quot;);</span>
+        }
+<span class="nc" id="L92">        return header;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

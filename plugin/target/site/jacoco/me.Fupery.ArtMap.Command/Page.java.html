@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Page.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Command</a> &gt; <span class="el_source">Page.java</span></div><h1>Page.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Command;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
+import me.Fupery.ArtMap.Menu.API.TextPagination;
+
+/**
+ * Page command handles pagination requests from other commands.
+ */
+public class Page extends AsyncCommand {
+
+<span class="nc" id="L18">    private static Map&lt;UUID,TextPagination&gt; pageMap = new HashMap&lt;&gt;();</span>
+
+    Page() {
+        //artmap page &lt;playerid&gt; &lt;page&gt;
+<span class="nc" id="L22">        super(null, &quot;/art page &lt;playerid&gt; &lt;page&gt;&quot;, false);</span>
+<span class="nc" id="L23">    }</span>
+
+    public static void startPagination(Player player, TextPagination pages) {
+<span class="nc" id="L26">        pageMap.put(player.getUniqueId(), pages);</span>
+<span class="nc" id="L27">        pages.sendPlayerPage(player, 1);</span>
+<span class="nc" id="L28">    }</span>
+
+    @Override
+    public void runCommand(CommandSender sender, String[] args, ReturnMessage msg) {
+        // args[0] is export
+<span class="nc bnc" id="L33" title="All 2 branches missed.">        if (args.length &lt; 2) {</span>
+<span class="nc" id="L34">            msg.message = &quot;page syntax incorrect!&quot;;</span>
+<span class="nc" id="L35">            return;</span>
+        }
+
+<span class="nc" id="L38">        UUID playerId = null;</span>
+<span class="nc" id="L39">        int pageNum = 1;</span>
+        try {
+<span class="nc" id="L41">            playerId = UUID.fromString(args[1]);</span>
+<span class="nc" id="L42">            pageNum = Integer.parseInt(args[2]);</span>
+<span class="nc" id="L43">        } catch(Exception e) {</span>
+<span class="nc" id="L44">            msg.message = &quot;Command format incorrect.&quot;;</span>
+<span class="nc" id="L45">        }</span>
+
+<span class="nc" id="L47">        Player player = Bukkit.getPlayer(playerId);</span>
+<span class="nc bnc" id="L48" title="All 2 branches missed.">        if(player == null) {</span>
+<span class="nc" id="L49">            msg.message = &quot;Player not found.&quot;;</span>
+<span class="nc" id="L50">            return;</span>
+        }
+
+<span class="nc" id="L53">        TextPagination pages = pageMap.get(playerId);</span>
+<span class="nc bnc" id="L54" title="All 2 branches missed.">        if(pages == null) {</span>
+<span class="nc" id="L55">            msg.message = &quot;Pagination for this player has expired.&quot;;</span>
+<span class="nc" id="L56">            return;</span>
+        }
+<span class="nc" id="L58">        pages.sendPlayerPage(player, pageNum);</span>
+<span class="nc" id="L59">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

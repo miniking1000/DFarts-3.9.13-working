@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Brush.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Painting</a> &gt; <span class="el_source">Brush.java</span></div><h1>Brush.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Painting;
+
+import java.util.List;
+
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+
+import me.Fupery.ArtMap.api.Painting.Pixel;
+
+public abstract class Brush {
+
+<span class="nc" id="L12">    protected int cooldownMilli = 150;</span>
+    private CanvasRenderer canvas;
+    protected Player player;
+
+<span class="nc" id="L16">    protected Brush(CanvasRenderer canvas, Player player) {</span>
+<span class="nc" id="L17">        this.canvas = canvas;</span>
+<span class="nc" id="L18">        this.player = player;</span>
+<span class="nc" id="L19">    }</span>
+
+    /**
+     * Paint with the provided brush.
+     * @param action The brush action (Left or right click)
+     * @param brush The object that is the brush.
+     * @param strokeTime How long is the button held.
+     * @return List of modified pixels.
+     */
+    public abstract List&lt;CachedPixel&gt; paint(BrushAction action, ItemStack brush, long strokeTime);
+
+    public abstract boolean checkMaterial(ItemStack brush);
+
+    public abstract void clean();
+
+    protected int getCooldown() {
+<span class="nc" id="L35">        return cooldownMilli;</span>
+    }
+
+    protected void addPixel(int x, int y, byte colour) {
+<span class="nc" id="L39">        canvas.addPixel(x, y, colour);</span>
+<span class="nc" id="L40">    }</span>
+
+    protected byte getPixel(int x, int y) {
+<span class="nc" id="L43">        return canvas.getPixel(x, y);</span>
+    }
+
+    protected byte[] getCurrentPixel() {
+<span class="nc" id="L47">        return canvas.getCurrentPixel();</span>
+    }
+
+    protected Pixel getPixelAt(int x, int y) {
+<span class="nc" id="L51">        return canvas.getPixelAt(x, y);</span>
+    }
+
+    protected boolean isOffCanvas() {
+<span class="nc" id="L55">        return canvas.isOffCanvas();</span>
+    }
+
+    protected byte[][] getPixelBuffer() {
+<span class="nc" id="L59">        return canvas.getPixelBuffer();</span>
+    }
+
+    protected int getAxisLength() {
+<span class="nc" id="L63">        return canvas.getAxisLength();</span>
+    }
+
+<span class="nc" id="L66">    protected enum BrushAction {</span>
+<span class="nc" id="L67">        LEFT_CLICK, RIGHT_CLICK</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

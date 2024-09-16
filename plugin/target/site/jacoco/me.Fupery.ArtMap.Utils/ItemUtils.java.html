@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ItemUtils.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Utils</a> &gt; <span class="el_source">ItemUtils.java</span></div><h1>ItemUtils.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Utils;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.MapMeta;
+
+import me.Fupery.ArtMap.Exception.ArtMapException;
+
+public class ItemUtils {
+
+<span class="nc" id="L17">    protected ItemUtils() {</span>
+        //this is a static class so hide the constructor
+<span class="nc" id="L19">    }</span>
+
+    public static void giveItem(Player player, ItemStack item) {
+<span class="nc" id="L22">        ItemStack leftOver = player.getInventory().addItem(item).get(0);</span>
+<span class="nc bnc" id="L23" title="All 4 branches missed.">        if (leftOver != null &amp;&amp; leftOver.getAmount() &gt; 0)</span>
+<span class="nc" id="L24">            player.getWorld().dropItemNaturally(player.getLocation(), leftOver);</span>
+<span class="nc" id="L25">    }</span>
+
+    public static boolean hasKey(ItemStack itemStack, String key) {
+<span class="nc bnc" id="L28" title="All 4 branches missed.">        if (itemStack != null &amp;&amp; itemStack.hasItemMeta()) {</span>
+<span class="nc" id="L29">            ItemMeta itemMeta = itemStack.getItemMeta();</span>
+<span class="nc bnc" id="L30" title="All 4 branches missed.">            return itemMeta.hasLore() &amp;&amp; itemMeta.getLore().contains(key);</span>
+        }
+<span class="nc" id="L32">        return false;</span>
+    }
+
+    public static ItemStack addKey(ItemStack item, String key) {
+<span class="nc" id="L36">        ItemMeta meta = item.getItemMeta();</span>
+<span class="nc bnc" id="L37" title="All 2 branches missed.">        if(meta == null) {</span>
+<span class="nc" id="L38">            return null;</span>
+        }
+<span class="nc" id="L40">        List&lt;String&gt; lore = meta.getLore();</span>
+<span class="nc bnc" id="L41" title="All 2 branches missed.">        if (lore == null) {</span>
+<span class="nc" id="L42">            lore = new ArrayList&lt;&gt;();</span>
+<span class="nc bnc" id="L43" title="All 2 branches missed.">        } else if (lore.contains(key)) {</span>
+<span class="nc" id="L44">            return item;</span>
+        } 
+<span class="nc" id="L46">        lore.add(key);</span>
+<span class="nc" id="L47">        meta.setLore(lore);</span>
+<span class="nc" id="L48">        item.setItemMeta(meta);</span>
+<span class="nc" id="L49">        return item;</span>
+    }
+
+	/**
+     * Handle 1.13 maps having their ID as part of the meta data.
+     * 
+     * @param item The Map Item to get the id of.
+     * @return The ID of the map or Empty if the mapview isnt present.
+     * @throws ArtMapException 
+     */
+    public static Optional&lt;Integer&gt; getMapID(ItemStack item) throws ArtMapException {
+<span class="nc bnc" id="L60" title="All 2 branches missed.">		if (item.getType() != Material.FILLED_MAP) {</span>
+<span class="nc" id="L61">			throw new ArtMapException(&quot;Tried to get the map id of an item that is not a map.&quot;);</span>
+		}
+
+<span class="nc" id="L64">        MapMeta meta = (MapMeta) item.getItemMeta();</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">        if(null == meta) {</span>
+<span class="nc" id="L66">            throw new ArtMapException(&quot;Tried to get the map id but the map doesn't have a map meta?&quot;);</span>
+        }
+<span class="nc bnc" id="L68" title="All 4 branches missed.">        if(meta.hasMapView() &amp;&amp; meta.getMapView() != null) {</span>
+<span class="nc" id="L69">            return Optional.of(meta.getMapView().getId());</span>
+        } else {
+<span class="nc" id="L71">            return Optional.empty();</span>
+        }
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

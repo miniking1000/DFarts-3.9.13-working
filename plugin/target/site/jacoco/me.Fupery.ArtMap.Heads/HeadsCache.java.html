@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>HeadsCache.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Heads</a> &gt; <span class="el_source">HeadsCache.java</span></div><h1>HeadsCache.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Heads;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.lang.reflect.Type;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.text.MessageFormat;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.logging.Level;
+
+import javax.net.ssl.HttpsURLConnection;
+
+import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
+import com.mojang.authlib.properties.PropertyMap;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.Exception.HeadFetchException;
+import me.Fupery.ArtMap.api.Compatability.IHeadsRetriever;
+import me.Fupery.ArtMap.api.Compatability.IHeadsRetriever.TextureData;
+import me.Fupery.ArtMap.api.Utils.Reflections;
+
+/**
+ * Heads handler to be used with caching head textures.
+ * 
+ * @author wispoffates
+ */
+public class HeadsCache {
+
+<span class="nc" id="L50">	private static JsonParser				parser				= new JsonParser();</span>
+<span class="nc" id="L51">	private static String					API_PROFILE_LINK	= &quot;https://sessionserver.mojang.com/session/minecraft/profile/&quot;;</span>
+
+<span class="nc" id="L53">	private static final Map&lt;UUID, TextureData&gt;	textureCache	= Collections.synchronizedMap( new HashMap&lt;&gt;());</span>
+	/** Map to convert names to UUIDs for players that have never logged in to the server.
+	 * This is temporary till DB schema update that adds names to db.
+	 */
+<span class="nc" id="L57">	private static final Map&lt;String, UUID&gt; nameToUUID = new HashMap&lt;&gt;();</span>
+	private File						   cacheFile;
+	private ArtMap plugin;
+
+	/** Loads the cache from disk */
+	public HeadsCache(ArtMap plugin) {
+<span class="nc" id="L63">		this(plugin,plugin.getConfiguration().HEAD_PREFETCH);</span>
+<span class="nc" id="L64">	}</span>
+
+<span class="nc" id="L66">	public HeadsCache(ArtMap plugin, boolean prefetch) {</span>
+<span class="nc" id="L67">		this.plugin = plugin;</span>
+		//Load the cache file
+<span class="nc" id="L69">		cacheFile = new File(plugin.getDataFolder(),&quot;heads_cache.json&quot;);</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">		if(cacheFile.exists()) {</span>
+<span class="nc" id="L71">			this.loadCacheFile(cacheFile);</span>
+		}
+
+		//init the cache
+<span class="nc bnc" id="L75" title="All 2 branches missed.">		if (prefetch) {</span>
+<span class="nc" id="L76">			plugin.getServer().getScheduler().runTaskLaterAsynchronously(plugin, () -&gt; {</span>
+<span class="nc" id="L77">				this.initHeadCache();</span>
+<span class="nc" id="L78">			}, plugin.getConfiguration().HEAD_PREFETCH_DELAY);</span>
+		}
+		//int the nameToUUID
+<span class="nc" id="L81">		textureCache.entrySet().stream().forEach(entry -&gt; {</span>
+<span class="nc" id="L82">			nameToUUID.put(entry.getValue().name, entry.getKey());</span>
+<span class="nc" id="L83">		});</span>
+<span class="nc" id="L84">	}</span>
+
+	public void updateCache(UUID playerId) {
+<span class="nc" id="L87">		this.updateTexture(playerId);</span>
+<span class="nc" id="L88">	}</span>
+
+	private void initHeadCache() {
+<span class="nc" id="L91">		int cached = 0;</span>
+<span class="nc" id="L92">		int mojang = 0;</span>
+<span class="nc" id="L93">		int server = 0;</span>
+<span class="nc" id="L94">		int failed = 0;</span>
+<span class="nc" id="L95">		int artistsCount = 0;</span>
+		try {
+<span class="nc" id="L97">			UUID[] artists = plugin.getArtDatabase().listArtists(UUID.randomUUID());</span>
+<span class="nc" id="L98">			artistsCount = artists.length;</span>
+<span class="nc" id="L99">			plugin.getLogger().info(MessageFormat.format(&quot;Async load of {0} artists started. {1} retrieved from disk cache.&quot;, artists.length, textureCache.size()));</span>
+			// skip the first one since we dummied it
+<span class="nc bnc" id="L101" title="All 2 branches missed.">			for (int i = 1; i &lt; artists.length; i++) {</span>
+				//check cache
+<span class="nc bnc" id="L103" title="All 2 branches missed.">				if(this.isHeadCached(artists[i])) {</span>
+<span class="nc" id="L104">					cached++;</span>
+				} else {
+					//Update the cache
+<span class="nc" id="L107">					HeadCacheResponeType response = this.updateTexture(artists[i]);</span>
+<span class="nc bnc" id="L108" title="All 5 branches missed.">					switch (response) {</span>
+						case MOJANG_API:
+<span class="nc" id="L110">							mojang++;</span>
+<span class="nc" id="L111">							Thread.sleep(plugin.getConfiguration().HEAD_PREFETCH_PERIOD); //go real slow</span>
+<span class="nc" id="L112">							break;</span>
+						case CACHE:
+							// cached is counted above to prevent unnecessary loading
+<span class="nc" id="L115">							break;</span>
+						case NONE:
+<span class="nc" id="L117">							failed++;</span>
+<span class="nc bnc" id="L118" title="All 2 branches missed.">							if(plugin.getConfiguration().HEAD_FETCH_MOJANG) {</span>
+								//go slow if we failed an api call
+<span class="nc" id="L120">								Thread.sleep(plugin.getConfiguration().HEAD_PREFETCH_PERIOD); </span>
+							}
+							break;
+						case SERVER:
+<span class="nc" id="L124">							server++;</span>
+<span class="nc" id="L125">							break;</span>
+						default:
+							break;
+
+					}
+				}
+			}
+<span class="nc" id="L132">		} catch (Exception e) {</span>
+<span class="nc" id="L133">			plugin.getLogger().log(Level.SEVERE, &quot;Exception during prefetch!&quot;,e);</span>
+<span class="nc" id="L134">		}</span>
+<span class="nc bnc" id="L135" title="All 4 branches missed.">		if((cached+mojang) == 0 &amp;&amp; artistsCount&gt;1) {</span>
+<span class="nc" id="L136">			plugin.getLogger().warning(&quot;Could not preload any player heads! Is the server in offline mode and not behind a Bungeecord?&quot;);</span>
+		} else {
+<span class="nc" id="L138">			plugin.getLogger().info(MessageFormat.format(&quot;Loaded {0} from disk cache, {1} from server, and {2} from mojang out of {3} artists with {4} failures&quot;, cached, server, mojang, artistsCount - 1, failed));</span>
+<span class="nc bnc" id="L139" title="All 2 branches missed.">			if(cached+mojang &lt; artistsCount) {</span>
+<span class="nc" id="L140">				plugin.getLogger().info(&quot;Remaining artists will be loaded when needed.&quot;);</span>
+			}
+		}
+<span class="nc" id="L143">	}</span>
+
+	/**
+	 * Initialize the cache from a file.
+	 * @param cacheFile The file the textures are cached in.
+	 */
+	private void loadCacheFile(File cacheFile) {
+<span class="nc" id="L150">		try( FileReader reader = new FileReader(cacheFile); ) {</span>
+<span class="nc" id="L151">            Gson gson = ArtMap.instance().getGson(true);</span>
+<span class="nc" id="L152">            Type collectionType = new TypeToken&lt;Map&lt;UUID,TextureData&gt;&gt;() {</span>
+<span class="nc" id="L153">            }.getType();</span>
+<span class="nc" id="L154">			Map&lt;UUID,TextureData&gt; loadedCache = gson.fromJson(reader, collectionType);</span>
+<span class="nc bnc" id="L155" title="All 4 branches missed.">			if(loadedCache != null &amp;&amp; !loadedCache.isEmpty()) {</span>
+<span class="nc" id="L156">				textureCache.putAll(loadedCache);</span>
+			} else {
+<span class="nc" id="L158">				ArtMap.instance().getLogger().warning(&quot;HeadCache load was null? Creating new empty cache.&quot;);</span>
+			}
+<span class="nc" id="L160">        } catch (Exception e) {</span>
+<span class="nc" id="L161">            ArtMap.instance().getLogger().log(Level.SEVERE, &quot;Failure parsing head cache! Will start with an empty cache.&quot;, e);</span>
+<span class="nc" id="L162">        }</span>
+<span class="nc" id="L163">	}</span>
+
+	/**
+	 * Save the cache to a file.
+	 * @param cacheFile The file the textures should be cached in.
+	 */
+	private synchronized void saveCacheFile(File cacheFile) {
+<span class="nc" id="L170">		try( FileWriter writer = new FileWriter(cacheFile) ){</span>
+<span class="nc" id="L171">			Gson gson = ArtMap.instance().getGson(true);</span>
+<span class="nc" id="L172">			Type collectionType = new TypeToken&lt;Map&lt;UUID,TextureData&gt;&gt;() {</span>
+<span class="nc" id="L173">			}.getType();</span>
+<span class="nc" id="L174">			gson.toJson(textureCache, collectionType, writer);	</span>
+<span class="nc" id="L175">		} catch (IOException e) {</span>
+<span class="nc" id="L176">			ArtMap.instance().getLogger().log(Level.SEVERE, &quot;Failure writing head cache!&quot;, e);</span>
+<span class="nc" id="L177">		}</span>
+<span class="nc" id="L178">	}</span>
+
+	/**
+	 * Create a head item with the provided texture.
+	 * 
+	 * @param playerId The ID of the player get the skull for.
+	 * 
+	 * @return The Skull.
+	 */
+	protected ItemStack getHead(UUID playerId) {
+<span class="nc" id="L188">		ItemStack head = new ItemStack(Material.PLAYER_HEAD, 1);</span>
+<span class="nc" id="L189">		Optional&lt;SkullMeta&gt; meta = getHeadMeta(playerId);</span>
+<span class="nc bnc" id="L190" title="All 2 branches missed.">		if (!meta.isPresent()) { //try loading it the normal way</span>
+<span class="nc" id="L191">			SkullMeta headmeta = (SkullMeta) head.getItemMeta();</span>
+<span class="nc" id="L192">			OfflinePlayer player = ArtMap.instance().getServer().getOfflinePlayer(playerId);</span>
+<span class="nc bnc" id="L193" title="All 2 branches missed.">			if(player.hasPlayedBefore()) {</span>
+<span class="nc" id="L194">				headmeta.setOwningPlayer(player);</span>
+<span class="nc" id="L195">				headmeta.setDisplayName(player.getName());</span>
+<span class="nc" id="L196">				head.setItemMeta(headmeta);</span>
+			}
+<span class="nc" id="L198">			return head; </span>
+		}
+<span class="nc" id="L200">		head.setItemMeta(meta.get());</span>
+<span class="nc" id="L201">		return head;</span>
+	}
+
+	/**
+	 * Check if the provided player's texture is cached.
+	 * @param playerId The UUID of the player to check.
+	 * @return True if the player texture is cached.
+	 */
+	public boolean isHeadCached(UUID playerId) {
+<span class="nc" id="L210">		return textureCache.containsKey(playerId);</span>
+	}
+
+	/**
+	 * Retrieve the name of the player from the cache.
+	 * @param playerId The id of the player to lookup.
+	 * @return The name of the player or null if it wasn't cached.
+	 */
+	public String getPlayerName(UUID playerId) {
+<span class="nc bnc" id="L219" title="All 2 branches missed.">		if(textureCache.containsKey(playerId)) {</span>
+<span class="nc" id="L220">			return textureCache.get(playerId).name;</span>
+		}
+<span class="nc" id="L222">		return null;</span>
+	}
+
+	/**
+	 * Search the cache for a artist name that matches the search term.
+	 * @param term The search term.
+	 * @return An array of matching names and an empty array if none or found.
+	 */
+	public String[] searchCache(String term) {
+<span class="nc" id="L231">		return nameToUUID.keySet().stream().filter( name -&gt; name.contains(term)).toArray(String[]::new);</span>
+	}
+
+	/**
+	 * Retrieve the player id for the given name from the cache.
+	 * @param playername The playername to get the ID of.
+	 * @return Optionally the player id if cached.
+	 */
+	public Optional&lt;UUID&gt; getPlayerUUID(String playername) {
+<span class="nc" id="L240">		return Optional.ofNullable(nameToUUID.get(playername));</span>
+	}
+
+	/**
+	 * Create a player skullMeta for the provided player id.
+	 * 
+	 * @param playerId The ID of the player to get the skull meta for.
+	 * @return The Skull meta.
+	 * @throws HeadFetchException
+	 */
+	public Optional&lt;SkullMeta&gt; getHeadMeta(UUID playerId) {
+		// is it in the cache?
+<span class="nc bnc" id="L252" title="All 2 branches missed.">		if (!textureCache.containsKey(playerId)) {</span>
+<span class="nc" id="L253">			this.updateTexture(playerId);</span>
+		}
+<span class="nc" id="L255">		TextureData data = textureCache.get(playerId);</span>
+<span class="nc bnc" id="L256" title="All 2 branches missed.">		if (data == null) {</span>
+<span class="nc" id="L257">			return Optional.empty();</span>
+		}
+<span class="nc" id="L259">		GameProfile profile = new GameProfile(UUID.randomUUID(), this.getPlayerName(playerId));</span>
+<span class="nc" id="L260">		PropertyMap propertyMap = profile.getProperties();</span>
+<span class="nc bnc" id="L261" title="All 2 branches missed.">		if (propertyMap == null) {</span>
+<span class="nc" id="L262">			throw new IllegalStateException(&quot;Profile doesn't contain a property map&quot;);</span>
+		}
+		// handle players without skin textures
+<span class="nc bnc" id="L265" title="All 2 branches missed.">		if (!data.texture.isEmpty()) {</span>
+<span class="nc" id="L266">			propertyMap.put(&quot;textures&quot;, new Property(&quot;textures&quot;, data.texture));</span>
+		}
+<span class="nc" id="L268">		ItemStack head = new ItemStack(Material.PLAYER_HEAD, 1);</span>
+<span class="nc" id="L269">		ItemMeta headMeta = head.getItemMeta();</span>
+<span class="nc" id="L270">		Class&lt;?&gt; headMetaClass = headMeta.getClass();</span>
+<span class="nc" id="L271">		Reflections.getField(headMetaClass, &quot;profile&quot;, GameProfile.class).set(headMeta, profile);</span>
+<span class="nc" id="L272">		headMeta.setDisplayName(data.name);</span>
+
+<span class="nc" id="L274">		return Optional.of((SkullMeta) headMeta);</span>
+	}
+
+	protected HeadCacheResponeType updateTexture(UUID playerId) {
+		try {
+			//Try and get the head texture from the server
+<span class="nc" id="L280">			OfflinePlayer player = ArtMap.instance().getServer().getOfflinePlayer(playerId);</span>
+			//Dont try from the server if they havent been on it recently
+<span class="nc bnc" id="L282" title="All 2 branches missed.">			if(player.hasPlayedBefore()) {</span>
+<span class="nc" id="L283">				IHeadsRetriever headsRetriever = ArtMap.instance().getCompatManager().getHeadsRetriever();</span>
+<span class="nc" id="L284">				Optional&lt;TextureData&gt; textData = headsRetriever.getTextureData(player);</span>
+<span class="nc bnc" id="L285" title="All 2 branches missed.">				if(textData.isPresent()) {</span>
+<span class="nc" id="L286">					textureCache.put(playerId, textData.get());</span>
+<span class="nc" id="L287">					this.saveCacheFile(cacheFile);</span>
+<span class="nc" id="L288">					nameToUUID.put(player.getName(), player.getUniqueId());</span>
+<span class="nc" id="L289">					return HeadCacheResponeType.SERVER;</span>
+				}
+			}
+			//Use the mojang if the local server look up dies
+<span class="nc bnc" id="L293" title="All 2 branches missed.">			if(plugin.getConfiguration().HEAD_FETCH_MOJANG) {</span>
+<span class="nc" id="L294">				Optional&lt;TextureData&gt; data = getSkinUrl(playerId);</span>
+<span class="nc bnc" id="L295" title="All 2 branches missed.">				if(data.isPresent()) {</span>
+<span class="nc" id="L296">					textureCache.put(playerId, data.get());</span>
+<span class="nc" id="L297">					this.saveCacheFile(cacheFile);</span>
+<span class="nc" id="L298">					nameToUUID.put(data.get().name, playerId);</span>
+<span class="nc" id="L299">					return HeadCacheResponeType.MOJANG_API;</span>
+				}
+			}
+<span class="nc" id="L302">		} catch( Exception e ) {</span>
+<span class="nc" id="L303">			ArtMap.instance().getLogger().log(Level.FINE, &quot;Headfetch failure!&quot;, e);</span>
+<span class="nc" id="L304">		}</span>
+<span class="nc" id="L305">		return HeadCacheResponeType.NONE;</span>
+	}
+
+	/**
+	 * Retrieve the current cache size.
+	 * 
+	 * @return The current cache size.
+	 */
+	public int getCacheSize() {
+<span class="nc" id="L314">		return textureCache.size();</span>
+	}
+
+	/*
+	 * HTTP Methods
+	 */
+	private static String getContent(String link) throws HeadFetchException {
+<span class="nc" id="L321">		BufferedReader br = null;</span>
+		try {
+<span class="nc" id="L323">			URL url = new URL(link);</span>
+<span class="nc" id="L324">			HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();</span>
+<span class="nc" id="L325">			br = new BufferedReader(new InputStreamReader(conn.getInputStream()));</span>
+			String inputLine;
+<span class="nc" id="L327">			StringBuffer sb = new StringBuffer();</span>
+<span class="nc bnc" id="L328" title="All 2 branches missed.">			while ((inputLine = br.readLine()) != null) {</span>
+<span class="nc" id="L329">				sb.append(inputLine);</span>
+			}
+<span class="nc" id="L331">			br.close();</span>
+<span class="nc" id="L332">			return sb.toString();</span>
+<span class="nc" id="L333">		} catch (MalformedURLException e) {</span>
+<span class="nc" id="L334">			ArtMap.instance().getLogger().log(Level.SEVERE, &quot;Failure getting head!&quot;, e);</span>
+<span class="nc" id="L335">			throw new HeadFetchException(&quot;Failure getting head!&quot;,e);</span>
+<span class="nc" id="L336">		} catch (IOException e) {</span>
+<span class="nc" id="L337">			ArtMap.instance().getLogger().info(&quot;Error retrieving head texture.  Server is likely over API limit temporarily.  The head will be fetched on use later.&quot;);</span>
+<span class="nc" id="L338">			throw new HeadFetchException(&quot;Error retrieving head texture.  Server is likely over API limit temporarily.  The head will be fetched on use later.&quot;,e);</span>
+		} finally {
+			try {
+<span class="nc bnc" id="L341" title="All 2 branches missed.">				if(br != null) {</span>
+<span class="nc" id="L342">					br.close();</span>
+				}
+<span class="nc" id="L344">			} catch (IOException e) {</span>
+				//don't care on close.
+<span class="nc" id="L346">			}</span>
+		}
+	}
+
+	private static Optional&lt;TextureData&gt; getSkinUrl(UUID uuid) throws HeadFetchException {
+<span class="nc" id="L351">		String id = uuid.toString().replace(&quot;-&quot;, &quot;&quot;);</span>
+		try {
+<span class="nc" id="L353">			String json = getContent(API_PROFILE_LINK + id);</span>
+<span class="nc bnc" id="L354" title="All 2 branches missed.">			if(json == null) {</span>
+<span class="nc" id="L355">				throw new HeadFetchException(&quot;Skin texture could not be loaded! invalid uuid!&quot;);</span>
+			}
+<span class="nc" id="L357">			JsonObject o = parser.parse(json).getAsJsonObject();</span>
+<span class="nc" id="L358">			String name = o.get(&quot;name&quot;).getAsString();</span>
+<span class="nc" id="L359">			JsonArray jArray= o.get(&quot;properties&quot;).getAsJsonArray();</span>
+<span class="nc" id="L360">			String jsonBase64 = null;</span>
+<span class="nc bnc" id="L361" title="All 2 branches missed.">			if(jArray.size() &gt; 0) {</span>
+<span class="nc" id="L362">				jsonBase64 = jArray.get(0).getAsJsonObject().get(&quot;value&quot;).getAsString();</span>
+			} else {
+<span class="nc" id="L364">				return Optional.empty();</span>
+			}
+<span class="nc" id="L366">			return Optional.of(new TextureData(name, jsonBase64));</span>
+<span class="nc" id="L367">		} catch ( Throwable e ) {</span>
+<span class="nc" id="L368">			throw new HeadFetchException(API_PROFILE_LINK+id+ &quot; :: Failure parsing skin texture json. You may ignore ths warning.&quot;,e);</span>
+		}
+	}
+
+	/** Where the skin was loaded from.
+	 * Used by the prefetch to know when it needs to rate limit.
+	 */
+<span class="nc" id="L375">	public enum HeadCacheResponeType {</span>
+		/** Retrieved from Cache */
+<span class="nc" id="L377">		CACHE, </span>
+		/** Retrieved from Server */
+<span class="nc" id="L379">		SERVER, </span>
+		/** Retrieved from Mojang API */
+<span class="nc" id="L381">		MOJANG_API, </span>
+		/** Failure to get skin */
+<span class="nc" id="L383">		NONE</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

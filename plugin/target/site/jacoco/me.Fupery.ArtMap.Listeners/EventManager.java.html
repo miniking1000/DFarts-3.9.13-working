@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EventManager.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Listeners</a> &gt; <span class="el_source">EventManager.java</span></div><h1>EventManager.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Listeners;
+
+import org.bukkit.plugin.PluginManager;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import me.Fupery.ArtMap.api.Utils.VersionHandler;
+
+import java.util.HashSet;
+import java.util.Set;
+
+public class EventManager {
+    private final Set&lt;RegisteredListener&gt; listeners;
+
+<span class="nc" id="L14">    public EventManager(JavaPlugin plugin, VersionHandler version) {</span>
+<span class="nc" id="L15">        listeners = new HashSet&lt;&gt;();</span>
+<span class="nc" id="L16">        listeners.add(new PlayerInteractListener());</span>
+<span class="nc" id="L17">        listeners.add(new PlayerInteractEaselListener());</span>
+<span class="nc" id="L18">        listeners.add(new PlayerQuitListener());</span>
+<span class="nc" id="L19">        listeners.add(new ChunkUnloadListener());</span>
+<span class="nc" id="L20">        listeners.add(new PlayerCraftListener());</span>
+<span class="nc" id="L21">        listeners.add(new InventoryInteractListener());</span>
+<span class="nc" id="L22">        listeners.add(new MapInitializeListener());</span>
+<span class="nc" id="L23">        listeners.add(new PlayerSwapHandListener());</span>
+<span class="nc" id="L24">        listeners.add(new PlayerDismountListener());</span>
+<span class="nc" id="L25">        listeners.add(new PlayerJoinEventListener());</span>
+<span class="nc" id="L26">		listeners.add(new PlayerCommandPreListener());</span>
+<span class="nc" id="L27">        PluginManager manager = plugin.getServer().getPluginManager();</span>
+<span class="nc bnc" id="L28" title="All 2 branches missed.">        for (RegisteredListener listener : listeners) manager.registerEvents(listener, plugin);</span>
+<span class="nc" id="L29">    }</span>
+
+    public void unregisterAll() {
+<span class="nc" id="L32">        listeners.forEach(RegisteredListener::unregister);</span>
+<span class="nc" id="L33">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

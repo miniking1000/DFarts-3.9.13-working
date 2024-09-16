@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Flip.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Painting.Brushes</a> &gt; <span class="el_source">Flip.java</span></div><h1>Flip.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Painting.Brushes;
+
+import me.Fupery.ArtMap.Painting.Brush;
+import me.Fupery.ArtMap.Painting.CachedPixel;
+import me.Fupery.ArtMap.Painting.CanvasRenderer;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+
+public class Flip extends Brush {
+    public Flip(CanvasRenderer canvas, Player player) {
+<span class="nc" id="L16">        super(canvas, player);</span>
+<span class="nc" id="L17">        cooldownMilli = 750;</span>
+<span class="nc" id="L18">    }</span>
+
+    @Override
+    public List&lt;CachedPixel&gt; paint(BrushAction action, ItemStack brush, long strokeTime) {
+<span class="nc" id="L22">        byte[][] buffer = getPixelBuffer();</span>
+
+<span class="nc" id="L24">        byte[][] matrix = new byte[buffer.length][];</span>
+<span class="nc bnc" id="L25" title="All 2 branches missed.">        for (int i = 0; i &lt; buffer.length; i++) {</span>
+<span class="nc" id="L26">            byte[] mat = buffer[i];</span>
+<span class="nc" id="L27">            int len = mat.length;</span>
+<span class="nc" id="L28">            matrix[i] = new byte[len];</span>
+<span class="nc" id="L29">            System.arraycopy(mat, 0, matrix[i], 0, len);</span>
+        }
+
+<span class="nc bnc" id="L32" title="All 2 branches missed.">        if (action == BrushAction.LEFT_CLICK) {</span>
+<span class="nc bnc" id="L33" title="All 2 branches missed.">            for (int x = 0; x &lt; matrix.length; x++) {</span>
+<span class="nc bnc" id="L34" title="All 2 branches missed.">                for (int y = 0; y &lt; matrix[0].length; y++) {</span>
+<span class="nc" id="L35">                    addPixel(matrix.length - 1 - x, y, matrix[x][y]);</span>
+                }
+            }
+        } else {
+<span class="nc bnc" id="L39" title="All 2 branches missed.">            for (int x = 0; x &lt; matrix.length; x++) {</span>
+<span class="nc bnc" id="L40" title="All 2 branches missed.">                for (int y = 0; y &lt; matrix[0].length; y++) {</span>
+<span class="nc" id="L41">                    addPixel(x, matrix[0].length - 1 - y, matrix[x][y]);</span>
+                }
+            }
+        }
+<span class="nc" id="L45">        return new ArrayList&lt;CachedPixel&gt;(); //since flip is reversible no need to worry about the undo buffer</span>
+    }
+
+    @Override
+    public boolean checkMaterial(ItemStack brush) {
+<span class="nc bnc" id="L50" title="All 2 branches missed.">        return brush.getType() == Material.COMPASS;</span>
+    }
+
+    @Override
+    public void clean() {
+
+<span class="nc" id="L56">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

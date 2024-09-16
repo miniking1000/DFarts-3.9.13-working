@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CommandExport.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Command</a> &gt; <span class="el_source">CommandExport.java</span></div><h1>CommandExport.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Command;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.sql.SQLException;
+import java.text.MessageFormat;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.logging.Level;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.api.Config.Lang;
+import me.Fupery.ArtMap.Exception.DuplicateArtworkException;
+import me.Fupery.ArtMap.IO.CompressedMap;
+import me.Fupery.ArtMap.IO.MapArt;
+import me.Fupery.ArtMap.IO.Database.Map;
+
+public class CommandExport extends AsyncCommand {
+
+    CommandExport() {
+<span class="nc" id="L34">        super(null, &quot;/art export &lt;-all|-artist|-title&gt; [name] &lt;output_file_name&gt;.json&quot;, true);</span>
+<span class="nc" id="L35">    }</span>
+
+    @Override
+    public void runCommand(CommandSender sender, String[] args, ReturnMessage msg) {
+<span class="nc bnc" id="L39" title="All 2 branches missed.">        if (!sender.hasPermission(&quot;artmap.admin&quot;)) {</span>
+<span class="nc" id="L40">            msg.message = Lang.NO_PERM.get();</span>
+<span class="nc" id="L41">            return;</span>
+        }
+
+        // args[0] is export
+<span class="nc bnc" id="L45" title="All 2 branches missed.">        if (args.length &lt; 3) {</span>
+            // TODO: need usage
+<span class="nc" id="L47">            msg.message = Lang.COMMAND_EXPORT.get();</span>
+<span class="nc" id="L48">            return;</span>
+        }
+
+<span class="nc" id="L51">        List&lt;MapArt&gt; artToExport = new LinkedList&lt;&gt;();</span>
+<span class="nc" id="L52">        String exportFilename = null;</span>
+
+<span class="nc bnc" id="L54" title="All 4 branches missed.">        switch (args[1]) {</span>
+            case &quot;-all&quot;:
+                try {
+<span class="nc bnc" id="L57" title="All 2 branches missed.">                    for (UUID artist : ArtMap.instance().getArtDatabase().listArtists()) {</span>
+<span class="nc" id="L58">                        artToExport.addAll(Arrays.asList(ArtMap.instance().getArtDatabase().listMapArt(artist)));</span>
+                    }
+<span class="nc" id="L60">                } catch (SQLException e2) {</span>
+<span class="nc" id="L61">                    msg.message = &quot;Database error! Check logs.&quot;;</span>
+<span class="nc" id="L62">                    ArtMap.instance().getLogger().log(Level.SEVERE, &quot;Database error!&quot;, e2);</span>
+<span class="nc" id="L63">                    return;</span>
+<span class="nc" id="L64">                }</span>
+<span class="nc" id="L65">                exportFilename = args[2];</span>
+
+<span class="nc" id="L67">                break;</span>
+            case &quot;-artist&quot;:
+<span class="nc bnc" id="L69" title="All 2 branches missed.">                if (args.length &lt; 4) {</span>
+                    // TODO: need usage
+<span class="nc" id="L71">                    msg.message = Lang.COMMAND_EXPORT.get();</span>
+<span class="nc" id="L72">                    return;</span>
+                }
+                MapArt[] arts;
+                try {
+<span class="nc" id="L76">                    UUID id = UUID.fromString(args[2]);</span>
+<span class="nc" id="L77">                    arts = ArtMap.instance().getArtDatabase().listMapArt(id);</span>
+<span class="nc" id="L78">                } catch (Exception exp) {</span>
+                    // its a name then
+                    try {
+<span class="nc" id="L81">                        Player p = Bukkit.getPlayer(args[2]);</span>
+<span class="nc bnc" id="L82" title="All 2 branches missed.">                        if(p==null) {</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">                            if(sender != null) {</span>
+<span class="nc" id="L84">                                sender.sendMessage(&quot;Player not found! :: &quot; + args[2]);</span>
+<span class="nc" id="L85">                                return;</span>
+                            }
+                        }
+<span class="nc" id="L88">                        arts = ArtMap.instance().getArtDatabase().listMapArt(p.getUniqueId());</span>
+<span class="nc" id="L89">                    } catch (SQLException e) {</span>
+<span class="nc" id="L90">                        msg.message = &quot;Database error! Check logs.&quot;;</span>
+<span class="nc" id="L91">                        ArtMap.instance().getLogger().log(Level.SEVERE, &quot;Database error!&quot;, e);</span>
+<span class="nc" id="L92">                        return;</span>
+<span class="nc" id="L93">                    }</span>
+<span class="nc" id="L94">                }</span>
+<span class="nc bnc" id="L95" title="All 2 branches missed.">                if (arts != null) {</span>
+<span class="nc" id="L96">                    artToExport.addAll(Arrays.asList(arts));</span>
+<span class="nc" id="L97">                    exportFilename = args[3];</span>
+                } else {
+<span class="nc" id="L99">                    msg.message = String.format(Lang.NO_ARTWORKS.get(), args[2]);</span>
+<span class="nc" id="L100">                    return;</span>
+                }
+                break;
+            case &quot;-title&quot;:
+<span class="nc bnc" id="L104" title="All 2 branches missed.">                if (args.length &lt; 4) {</span>
+                    // TODO: need usage
+<span class="nc" id="L106">                    msg.message = Lang.COMMAND_EXPORT.get();</span>
+<span class="nc" id="L107">                    return;</span>
+                }
+                Optional&lt;MapArt&gt; art;
+                try {
+<span class="nc" id="L111">                    art = ArtMap.instance().getArtDatabase().getArtwork(args[2]);</span>
+<span class="nc" id="L112">                } catch (SQLException e1) {</span>
+<span class="nc" id="L113">                    msg.message = &quot;Database error! Check logs.&quot;;</span>
+<span class="nc" id="L114">                    ArtMap.instance().getLogger().log(Level.SEVERE, &quot;Database error!&quot;, e1);</span>
+<span class="nc" id="L115">                    return;</span>
+<span class="nc" id="L116">                }</span>
+<span class="nc bnc" id="L117" title="All 2 branches missed.">                if (art.isPresent()) {</span>
+<span class="nc" id="L118">                    artToExport.add(art.get());</span>
+<span class="nc" id="L119">                    exportFilename = args[3];</span>
+                } else {
+<span class="nc" id="L121">                    msg.message = String.format(Lang.MAP_NOT_FOUND.get(), args[2]);</span>
+<span class="nc" id="L122">                    return;</span>
+                }
+                break;
+            default:
+                // TODO: need usage
+<span class="nc" id="L127">                msg.message = Lang.COMMAND_EXPORT.get();</span>
+        }
+
+<span class="nc bnc" id="L130" title="All 2 branches missed.">        if (artToExport.isEmpty()) {</span>
+<span class="nc" id="L131">            sender.sendMessage(&quot;No artwork found export!&quot;);</span>
+<span class="nc" id="L132">            return;</span>
+        }
+<span class="nc" id="L134">        sender.sendMessage(MessageFormat.format(&quot;Beginning export of {0} artworks.&quot;, artToExport.size()));</span>
+<span class="nc" id="L135">        List&lt;ArtworkExport&gt; exports = new LinkedList&lt;&gt;();</span>
+<span class="nc bnc" id="L136" title="All 2 branches missed.">        for (MapArt artwork : artToExport) {</span>
+<span class="nc" id="L137">            CompressedMap map = null;</span>
+            try {
+<span class="nc" id="L139">                map = ArtMap.instance().getArtDatabase().getArtworkCompressedMap(artwork.getMapId());</span>
+<span class="nc" id="L140">            } catch (SQLException e) {</span>
+<span class="nc" id="L141">                msg.message = &quot;Database error! Check logs.&quot;;</span>
+<span class="nc" id="L142">                ArtMap.instance().getLogger().log(Level.SEVERE, &quot;Database error!&quot;, e);</span>
+<span class="nc" id="L143">            }</span>
+<span class="nc bnc" id="L144" title="All 2 branches missed.">            if (map != null) {</span>
+<span class="nc" id="L145">                exports.add(new ArtworkExport(artwork, map));</span>
+            } else {
+<span class="nc" id="L147">                sender.sendMessage(artwork + &quot; no matching map in Map table! Error! Skipping...&quot;);</span>
+            }
+<span class="nc" id="L149">        }</span>
+<span class="nc bnc" id="L150" title="All 2 branches missed.">        if(!exportFilename.endsWith(&quot;.json&quot;)) {</span>
+<span class="nc" id="L151">            exportFilename = exportFilename + &quot;.json&quot;;</span>
+        }
+<span class="nc" id="L153">        File exportFile = new File(ArtMap.instance().getDataFolder(), exportFilename);</span>
+<span class="nc bnc" id="L154" title="All 2 branches missed.">        if (exportFile.exists()) {</span>
+<span class="nc" id="L155">            sender.sendMessage(&quot;File all ready exists please choose another filename.&quot;);</span>
+<span class="nc" id="L156">            return;</span>
+        }
+<span class="nc" id="L158">        try (FileWriter writer = new FileWriter(exportFile);) {</span>
+<span class="nc" id="L159">            Gson gson = ArtMap.instance().getGson(true);</span>
+<span class="nc" id="L160">            Type collectionType = new TypeToken&lt;List&lt;ArtworkExport&gt;&gt;() {</span>
+<span class="nc" id="L161">            }.getType();</span>
+<span class="nc" id="L162">            gson.toJson(exports, collectionType, writer);</span>
+<span class="nc" id="L163">            writer.flush();</span>
+<span class="nc" id="L164">            sender.sendMessage(MessageFormat.format(&quot;Completed export of {0} artworks.&quot;, exports.size()));</span>
+<span class="nc" id="L165">        } catch (IOException e) {</span>
+<span class="nc" id="L166">            ArtMap.instance().getLogger().log(Level.SEVERE, &quot;Failure writing export!&quot;, e);</span>
+<span class="nc" id="L167">        }</span>
+<span class="nc" id="L168">    }</span>
+
+    /**
+     * Class to gson export and import ArtMap data. Purposefully exludes mapId as it
+     * will need to be given a new id on the import side.
+     */
+    public static class ArtworkExport {
+        private String title;
+        private UUID artist;
+        private String date;
+        // base64 encoded map data
+        private String mapData;
+        private Integer hash;
+
+<span class="nc" id="L182">        protected ArtworkExport() {</span>
+            // GSON Constructor
+<span class="nc" id="L184">        }</span>
+
+        /**
+         * Constructor
+         * 
+         * @param artwork The artwork to export.
+         * @param map     The compressedMap to export.
+         */
+<span class="nc" id="L192">        public ArtworkExport(MapArt artwork, CompressedMap map) {</span>
+<span class="nc" id="L193">            this.title = artwork.getTitle();</span>
+<span class="nc" id="L194">            this.artist = artwork.getArtist();</span>
+<span class="nc" id="L195">            this.date = artwork.getDate();</span>
+
+<span class="nc" id="L197">            this.hash = map.getHash();</span>
+<span class="nc" id="L198">            this.mapData = Base64.getEncoder().encodeToString(map.getCompressedMap());</span>
+<span class="nc" id="L199">        }</span>
+
+        /**
+         * Import this artwork in the database.
+         * 
+         */
+        public void importArtwork(CommandSender sender) {
+            // 1.14 requires create map to be run on the main thread!
+<span class="nc" id="L207">            ArtMap.instance().getScheduler().SYNC.run(() -&gt; {</span>
+                try {
+<span class="nc" id="L209">                    Map map = ArtMap.instance().getArtDatabase().createMap();</span>
+<span class="nc" id="L210">                    CompressedMap cMap = new CompressedMap(map.getMapId(), this.hash,</span>
+<span class="nc" id="L211">                            Base64.getDecoder().decode(this.mapData));</span>
+<span class="nc" id="L212">                    map.setMap(cMap.decompressMap(), true);</span>
+<span class="nc" id="L213">                    Optional&lt;MapArt&gt; check = ArtMap.instance().getArtDatabase().getArtwork(this.title);</span>
+<span class="nc bnc" id="L214" title="All 2 branches missed.">                    if (check.isPresent()) {</span>
+                        // art with this title all ready exists see if its the same artwork (artist,and
+                        // hash) otherwise increment name by 1
+<span class="nc bnc" id="L217" title="All 2 branches missed.">                        if (check.get().getArtist().equals(this.artist)</span>
+<span class="nc bnc" id="L218" title="All 2 branches missed.">                                &amp;&amp; check.get().getMap().compress().getHash().equals(this.hash)) {</span>
+<span class="nc" id="L219">                            throw new DuplicateArtworkException(&quot;Artwok all ready in database&quot;);</span>
+                        }
+<span class="nc" id="L221">                        this.title = this.title + &quot;_1&quot;;</span>
+                    }
+                    // null artistname since its dropped when importing into the database.
+<span class="nc" id="L224">                    MapArt mapArt = new MapArt(map.getMapId(), this.title, this.artist, null, this.date);</span>
+<span class="nc" id="L225">                    ArtMap.instance().getArtDatabase().saveArtwork(mapArt, cMap);</span>
+<span class="nc" id="L226">                    ArtMap.instance().getLogger().info(this.title + &quot; :: Import Successful!&quot;);</span>
+<span class="nc" id="L227">                } catch (DuplicateArtworkException dae) {</span>
+<span class="nc bnc" id="L228" title="All 2 branches missed.">                    if (sender != null) {</span>
+<span class="nc" id="L229">                        ArtMap.instance().getLogger().warning(this.title + &quot; :: Import Failed! :: &quot; + dae.getMessage());</span>
+                    }
+<span class="nc" id="L231">                } catch (Exception e) {</span>
+<span class="nc bnc" id="L232" title="All 2 branches missed.">                    if (sender != null) {</span>
+<span class="nc" id="L233">                        ArtMap.instance().getLogger().warning(this.title + &quot; :: Import Failed! :: &quot; + e.getMessage());</span>
+                    }
+<span class="nc" id="L235">                    ArtMap.instance().getLogger().log(Level.SEVERE,</span>
+<span class="nc" id="L236">                            this.title + &quot; :: Import Failed! :: &quot; + e.getMessage(), e);</span>
+<span class="nc" id="L237">                }</span>
+<span class="nc" id="L238">            });</span>
+<span class="nc" id="L239">        }</span>
+
+        @Override
+        public String toString() {
+<span class="nc" id="L243">            return MessageFormat.format(&quot;{0} by {1} created on {2}&quot;, this.title, this.artist, this.date);</span>
+        }
+
+        public UUID getArtist() {
+<span class="nc" id="L247">            return this.artist;</span>
+        }
+
+        public String getTitle() {
+<span class="nc" id="L251">            return this.title;</span>
+        }
+
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

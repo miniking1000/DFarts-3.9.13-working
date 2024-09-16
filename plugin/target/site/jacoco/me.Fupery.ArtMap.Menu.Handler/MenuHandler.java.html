@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MenuHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Menu.Handler</a> &gt; <span class="el_source">MenuHandler.java</span></div><h1>MenuHandler.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Menu.Handler;
+
+import me.Fupery.ArtMap.Menu.API.ChildMenu;
+import me.Fupery.ArtMap.Menu.Event.MenuCloseReason;
+import me.Fupery.ArtMap.Menu.Event.MenuFactory;
+import me.Fupery.ArtMap.Menu.Event.MenuListener;
+import me.Fupery.ArtMap.Menu.HelpMenu.*;
+import me.Fupery.ArtMap.api.Config.Lang;
+
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
+public final class MenuHandler {
+<span class="nc" id="L19">    public final MenuList MENU = new MenuList();</span>
+<span class="nc" id="L20">    private final ConcurrentHashMap&lt;UUID, CacheableMenu&gt; openMenus = new ConcurrentHashMap&lt;&gt;();</span>
+    private String menuKey;
+    
+<span class="nc" id="L23">    public MenuHandler(JavaPlugin plugin) {</span>
+<span class="nc" id="L24">        new MenuListener(this, plugin);</span>
+
+        //condense the color codes to a single replaceable character
+<span class="nc" id="L27">        menuKey = showColorCodes(Lang.MenuTitle.MENU_HEADER.get().trim().toLowerCase());</span>
+        //strip any color code of the end of the menukey since it can be overriden by a starting color code on menu title.
+<span class="nc bnc" id="L29" title="All 2 branches missed.">        if(menuKey.lastIndexOf(&quot;$&quot;) == menuKey.length()-2) {</span>
+<span class="nc" id="L30">            menuKey = menuKey.substring(0, menuKey.length()-2).trim(); //extra trim in case there was a space between the last word and the color code</span>
+        }
+<span class="nc" id="L32">    }</span>
+
+    private String showColorCodes(String input) {
+<span class="nc" id="L35">        return input.replace('§', '$').replace('&amp;', '$');</span>
+    }
+
+    public boolean isTrackingPlayer(Player player) {
+        //condense the color codes to a single replaceable character, Lowercase to avoid colorcodes changing case
+<span class="nc" id="L40">        String invTitle = showColorCodes(player.getOpenInventory().getTitle()).toLowerCase();</span>
+<span class="nc" id="L41">        return invTitle.startsWith(menuKey);</span>
+    }
+
+    public void openMenu(Player viewer, CacheableMenu menu) {
+<span class="nc bnc" id="L45" title="All 2 branches missed.">        if (isTrackingPlayer(viewer)) {</span>
+<span class="nc" id="L46">            closeMenu(viewer, MenuCloseReason.SWITCH);</span>
+        } else {
+<span class="nc" id="L48">            viewer.closeInventory();//todo check if this works</span>
+        }
+<span class="nc" id="L50">        openMenus.put(viewer.getUniqueId(),menu);</span>
+<span class="nc" id="L51">        menu.open(viewer);</span>
+<span class="nc" id="L52">    }</span>
+
+    public void fireClickEvent(Player viewer, int slot, ClickType clickType) {
+<span class="nc bnc" id="L55" title="All 2 branches missed.">        if (!isTrackingPlayer(viewer)) return;</span>
+<span class="nc" id="L56">        this.openMenus.get(viewer.getUniqueId()).click(viewer, slot, clickType);</span>
+<span class="nc" id="L57">    }</span>
+
+    public void refreshMenu(Player viewer) {
+<span class="nc bnc" id="L60" title="All 2 branches missed.">        if (!isTrackingPlayer(viewer)) return;</span>
+<span class="nc" id="L61">        this.openMenus.get(viewer.getUniqueId()).refresh(viewer);</span>
+<span class="nc" id="L62">    }</span>
+
+    public void closeMenu(Player viewer, MenuCloseReason reason) {
+<span class="nc bnc" id="L65" title="All 2 branches missed.">        if (!isTrackingPlayer(viewer)) return;</span>
+<span class="nc" id="L66">        CacheableMenu menu = openMenus.get(viewer.getUniqueId());</span>
+<span class="nc bnc" id="L67" title="All 2 branches missed.">        if(menu != null) {</span>
+<span class="nc" id="L68">            menu.close(viewer, reason);</span>
+        }
+<span class="nc bnc" id="L70" title="All 4 branches missed.">        if (menu instanceof ChildMenu &amp;&amp; reason == MenuCloseReason.BACK) {</span>
+<span class="nc" id="L71">            openMenu(viewer, ((ChildMenu) menu).getParent(viewer));</span>
+        } else {
+<span class="nc" id="L73">            openMenus.remove(viewer.getUniqueId());</span>
+        }
+<span class="nc" id="L75">    }</span>
+
+    public void closeAll() {
+<span class="nc bnc" id="L78" title="All 2 branches missed.">        for (UUID uuid : openMenus.keySet()) closeMenu(Bukkit.getPlayer(uuid), MenuCloseReason.SYSTEM);</span>
+<span class="nc" id="L79">        openMenus.clear();</span>
+<span class="nc" id="L80">    }</span>
+
+<span class="nc" id="L82">    public static class MenuList {</span>
+<span class="nc" id="L83">        public MenuFactory HELP = new StaticMenuFactory(HelpMenu::new);</span>
+<span class="nc" id="L84">        public MenuFactory DYES = new StaticMenuFactory(DyeMenu::new);</span>
+<span class="nc" id="L85">        public MenuFactory TOOLS = new StaticMenuFactory(ToolMenu::new);</span>
+<span class="nc" id="L86">        public MenuFactory ARTIST = new DynamicMenuFactory(ArtistMenu::new);</span>
+<span class="nc" id="L87">        public MenuFactory RECIPE = new ConditionalMenuFactory(new ConditionalMenuFactory.ConditionalGenerator() {</span>
+            @Override
+            public CacheableMenu getConditionTrue() {
+<span class="nc" id="L90">                return new RecipeMenu(true);</span>
+            }
+
+            @Override
+            public CacheableMenu getConditionFalse() {
+<span class="nc" id="L95">                return new RecipeMenu(false);</span>
+            }
+
+            @Override
+            public boolean evaluateCondition(Player viewer) {
+<span class="nc" id="L100">                return viewer.hasPermission(&quot;artmap.admin&quot;);</span>
+            }
+        });
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

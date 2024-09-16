@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ArtMaterial.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Recipe</a> &gt; <span class="el_source">ArtMaterial.java</span></div><h1>ArtMaterial.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Recipe;
+
+import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
+
+import me.Fupery.ArtMap.api.Config.Lang;
+
+<span class="nc" id="L9">public enum ArtMaterial {</span>
+
+<span class="nc" id="L11">	EASEL, CANVAS, CANVAS2, CANVAS3, MAP_ART, COMPASS, COAL, FEATHER, PAINTBUCKET, SPONGE;</span>
+
+    private CustomItem artItem;
+
+    public static void setupRecipes() {
+<span class="nc" id="L16">        EASEL.artItem = new ArtItem.CraftableItem(&quot;EASEL&quot;, Material.ARMOR_STAND, ArtItem.EASEL_KEY)</span>
+<span class="nc" id="L17">				.name(Lang.RECIPE_EASEL_NAME).tooltip(Lang.Array.RECIPE_EASEL);</span>
+
+<span class="nc" id="L19">        CANVAS.artItem = new ArtItem.CraftableItem(&quot;CANVAS&quot;, Material.PAPER, ArtItem.CANVAS_KEY)</span>
+<span class="nc" id="L20">				.name(Lang.RECIPE_CANVAS_NAME)</span>
+<span class="nc" id="L21">				.tooltip(Lang.Array.RECIPE_CANVAS);</span>
+
+<span class="nc" id="L23">        CANVAS2.artItem = new ArtItem.CraftableItem(&quot;CANVAS2&quot;, Material.PAPER, ArtItem.CANVAS_KEY2)</span>
+<span class="nc" id="L24">                .name(Lang.RECIPE_CANVAS_NAME + &quot; 2&quot;)</span>
+<span class="nc" id="L25">                .tooltip(Lang.Array.RECIPE_CANVAS);</span>
+
+<span class="nc" id="L27">        CANVAS3.artItem = new ArtItem.CraftableItem(&quot;CANVAS3&quot;, Material.PAPER, ArtItem.CANVAS_KEY3)</span>
+<span class="nc" id="L28">                .name(Lang.RECIPE_CANVAS_NAME + &quot; 3&quot;)</span>
+<span class="nc" id="L29">                .tooltip(Lang.Array.RECIPE_CANVAS);</span>
+
+<span class="nc" id="L31">        MAP_ART.artItem = new ArtItem.ArtworkItem(-1, &quot;Artwork&quot;, null, null);</span>
+
+<span class="nc" id="L33">        COMPASS.artItem = new ArtItem.KitItem(Material.COMPASS, &quot;COMPASS&quot;)</span>
+<span class="nc" id="L34">                .name(Lang.ITEM_NAME_COMPASS)</span>
+<span class="nc" id="L35">                .tooltip(Lang.Array.TOOL_COMPASS);</span>
+
+<span class="nc" id="L37">        COAL.artItem = new ArtItem.KitItem(Material.COAL, &quot;COAL&quot;)</span>
+<span class="nc" id="L38">                .name(Lang.ITEM_NAME_COAL)</span>
+<span class="nc" id="L39">                .tooltip(Lang.Array.TOOL_COAL);</span>
+
+<span class="nc" id="L41">        FEATHER.artItem = new ArtItem.KitItem(Material.FEATHER, &quot;FEATHER&quot;)</span>
+<span class="nc" id="L42">                .name(Lang.ITEM_NAME_FEATHER)</span>
+<span class="nc" id="L43">                .tooltip(Lang.Array.TOOL_FEATHER);</span>
+
+<span class="nc" id="L45">        PAINTBUCKET.artItem = new ArtItem.KitItem(Material.BUCKET, &quot;PAINTBUCKET&quot;)</span>
+<span class="nc" id="L46">                .name(Lang.ITEM_NAME_PAINTBUCKET)</span>
+<span class="nc" id="L47">                .tooltip(Lang.Array.TOOL_PAINTBUCKET);</span>
+
+<span class="nc" id="L49">        SPONGE.artItem = new ArtItem.KitItem(Material.SPONGE, &quot;SPONGE&quot;)</span>
+<span class="nc" id="L50">                .name(Lang.ITEM_NAME_SPONGE)</span>
+<span class="nc" id="L51">                .tooltip(Lang.Array.TOOL_SPONGE);</span>
+
+<span class="nc bnc" id="L53" title="All 2 branches missed.">        for (ArtMaterial material : values()) material.artItem.addRecipe();</span>
+<span class="nc" id="L54">    }</span>
+
+    public static ArtMaterial getCraftItemType(ItemStack item) {
+<span class="nc bnc" id="L57" title="All 2 branches missed.">        for (ArtMaterial material : values()) {</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">            if (material.artItem.checkItem(item)) return material;</span>
+        }
+<span class="nc" id="L60">        return null;</span>
+    }
+
+    public static ArtItem.ArtworkItem getMapArt(int id, String title, String playerName, String date) {
+<span class="nc" id="L64">        return new ArtItem.ArtworkItem(id, title, playerName, date);</span>
+    }
+
+    public Material getType() {
+<span class="nc" id="L68">        return artItem.getMaterial();</span>
+    }
+
+    public ItemStack getItem() {
+<span class="nc" id="L72">        return artItem.toItemStack();</span>
+    }
+
+    public boolean isValidMaterial(ItemStack item) {
+<span class="nc" id="L76">        return artItem.checkItem(item);</span>
+    }
+
+    public Recipe getRecipe() {
+<span class="nc" id="L80">        return artItem.getBukkitRecipe();</span>
+    }
+
+    public ItemStack[] getPreview() {
+<span class="nc" id="L84">        return artItem.getRecipe().getPreview();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

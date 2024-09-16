@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ArtMap.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap</a> &gt; <span class="el_source">ArtMap.java</span></div><h1>ArtMap.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.command.PluginCommand;
+import org.bukkit.map.MapView;
+import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.java.JavaPluginLoader;
+
+import me.Fupery.ArtMap.Command.CommandHandler;
+import me.Fupery.ArtMap.Compatibility.CompatibilityManager;
+import me.Fupery.ArtMap.Easel.Easel;
+import me.Fupery.ArtMap.Heads.HeadsCache;
+import me.Fupery.ArtMap.IO.PixelTableManager;
+import me.Fupery.ArtMap.IO.Database.Database;
+import me.Fupery.ArtMap.IO.Legacy.DatabaseConverter;
+import me.Fupery.ArtMap.IO.Legacy.FlatDatabaseConverter;
+import me.Fupery.ArtMap.IO.Legacy.V2DatabaseConverter;
+import me.Fupery.ArtMap.IO.Protocol.ProtocolHandler;
+import me.Fupery.ArtMap.Listeners.EventManager;
+import me.Fupery.ArtMap.Menu.Handler.MenuHandler;
+import me.Fupery.ArtMap.Painting.ArtistHandler;
+import me.Fupery.ArtMap.Preview.PreviewManager;
+import me.Fupery.ArtMap.Recipe.RecipeLoader;
+import me.Fupery.ArtMap.Utils.Reflection;
+import me.Fupery.ArtMap.Utils.Scheduler;
+import me.Fupery.ArtMap.api.IArtMap;
+import me.Fupery.ArtMap.api.Colour.Palette;
+import me.Fupery.ArtMap.api.Config.Configuration;
+import me.Fupery.ArtMap.api.Config.Lang;
+import me.Fupery.ArtMap.api.Utils.VersionHandler;
+
+public class ArtMap extends JavaPlugin implements IArtMap {
+
+<span class="fc" id="L47">	private static ArtMap pluginInstance = null;</span>
+	private MenuHandler menuHandler;
+	private ArtistHandler artistHandler;
+	private VersionHandler bukkitVersion;
+	private Scheduler scheduler;
+	private Database database;
+	private RecipeLoader recipeLoader;
+	private CompatibilityManager compatManager;
+	private ProtocolHandler protocolHandler;
+	private PixelTableManager pixelTable;
+	private Configuration config;
+	private EventManager eventManager;
+	private PreviewManager previewManager;
+	private Reflection reflection;
+	private HeadsCache headsCache;
+	private final ConcurrentHashMap&lt;Location, Easel&gt; easels;
+	private Palette dyePalette;
+<span class="pc" id="L64">	private boolean recipesLoaded = false;</span>
+	private boolean dbUpgradeNeeded;
+
+	public static ArtMap instance() {
+<span class="fc" id="L68">		return pluginInstance;</span>
+	}
+
+	/**
+	 * Debug method - Used for junit mocking!
+	 * @param artmap The mock instance.
+	 */
+	public static void setInstance(ArtMap artmap) {
+<span class="fc" id="L76">		pluginInstance = artmap;</span>
+<span class="fc" id="L77">	}</span>
+
+	public Database getArtDatabase() {
+<span class="nc" id="L80">		return this.database;</span>
+	}
+
+	public Scheduler getScheduler() {
+<span class="nc" id="L84">		return this.scheduler;</span>
+	}
+
+	public ArtistHandler getArtistHandler() {
+<span class="nc" id="L88">		return this.artistHandler;</span>
+	}
+
+	public VersionHandler getBukkitVersion() {
+<span class="nc" id="L92">		return this.bukkitVersion;</span>
+	}
+
+	public RecipeLoader getRecipeLoader() {
+<span class="nc" id="L96">		return this.recipeLoader;</span>
+	}
+
+	public CompatibilityManager getCompatManager() {
+<span class="nc" id="L100">		return this.compatManager;</span>
+	}
+
+	public MenuHandler getMenuHandler() {
+<span class="nc" id="L104">		return this.menuHandler;</span>
+	}
+
+	public Configuration getConfiguration() {
+<span class="nc" id="L108">		return this.config;</span>
+	}
+
+	public ProtocolHandler getProtocolManager() {
+<span class="nc" id="L112">		return this.protocolHandler;</span>
+	}
+
+	public Palette getDyePalette() {
+<span class="nc" id="L116">		return this.dyePalette;</span>
+	}
+
+	public PreviewManager getPreviewManager() {
+<span class="nc" id="L120">		return this.previewManager;</span>
+	}
+
+	public Reflection getReflection() {
+<span class="nc" id="L124">		return this.reflection;</span>
+	}
+
+	public ConcurrentHashMap&lt;Location,Easel&gt; getEasels() {
+<span class="nc" id="L128">		return this.easels;</span>
+	}
+
+	public PixelTableManager getPixelTable() {
+<span class="nc" id="L132">		return this.pixelTable;</span>
+	}
+
+	public HeadsCache getHeadsCache() {
+<span class="nc" id="L136">		return this.headsCache;</span>
+	}
+
+	public boolean isDBUpgradeNeeded() {
+<span class="nc" id="L140">		return this.dbUpgradeNeeded;</span>
+	}
+
+	public void setColourPalette(Palette palette) {
+<span class="nc" id="L144">		this.dyePalette = palette;</span>
+<span class="nc" id="L145">	}</span>
+
+	public ArtMap() {
+<span class="nc" id="L148">		super();</span>
+<span class="nc" id="L149">		easels = new ConcurrentHashMap&lt;&gt;();</span>
+<span class="nc" id="L150">	}</span>
+
+	//Testing constructor
+	public ArtMap(JavaPluginLoader loader, PluginDescriptionFile description, File dataFolder, File file) {
+<span class="fc" id="L154">		super(loader,description,dataFolder,file);</span>
+<span class="fc" id="L155">		easels = new ConcurrentHashMap&lt;&gt;();</span>
+<span class="fc" id="L156">	}</span>
+
+	@Override
+	public void onEnable() {
+		try {
+<span class="fc" id="L161">			pluginInstance = this;</span>
+<span class="fc" id="L162">			saveDefaultConfig();</span>
+<span class="fc" id="L163">			config = new Configuration(this);</span>
+<span class="fc" id="L164">			Lang.load(this, config);</span>
+<span class="fc" id="L165">			reflection = new Reflection();</span>
+<span class="fc" id="L166">			scheduler = new Scheduler(this);</span>
+<span class="nc" id="L167">			bukkitVersion = new VersionHandler(this);</span>
+<span class="nc" id="L168">			compatManager = new CompatibilityManager(this);</span>
+<span class="nc" id="L169">			protocolHandler = new ProtocolHandler();</span>
+<span class="nc" id="L170">			artistHandler = new ArtistHandler();</span>
+<span class="nc" id="L171">			dyePalette = compatManager.getPalette();</span>
+<span class="nc" id="L172">			database = new Database(this);</span>
+<span class="nc" id="L173">			dbUpgradeNeeded = this.checkIfDatabaseUpgradeNeeded();</span>
+<span class="nc" id="L174">			this.getLogger().info(&quot; MC version: &quot; + bukkitVersion.toString() ) ;</span>
+<span class="nc bnc" id="L175" title="All 2 branches missed.">			if ((pixelTable = PixelTableManager.buildTables(this)) == null) {</span>
+<span class="nc" id="L176">				getLogger().warning(Lang.INVALID_DATA_TABLES.get());</span>
+<span class="nc" id="L177">				getPluginLoader().disablePlugin(this);</span>
+<span class="nc" id="L178">				return;</span>
+			}
+<span class="nc bnc" id="L180" title="All 2 branches missed.">			if (!recipesLoaded) {</span>
+<span class="nc" id="L181">				recipeLoader = new RecipeLoader(this, config);</span>
+<span class="nc" id="L182">				recipeLoader.loadRecipes();</span>
+<span class="nc" id="L183">				recipesLoaded = true;</span>
+			}
+<span class="nc" id="L185">			eventManager = new EventManager(this, bukkitVersion);</span>
+<span class="nc" id="L186">			previewManager = new PreviewManager();</span>
+<span class="nc" id="L187">			menuHandler = new MenuHandler(this);</span>
+<span class="nc" id="L188">			PluginCommand artCommand = getCommand(&quot;art&quot;);</span>
+<span class="nc bnc" id="L189" title="All 2 branches missed.">			if(artCommand!=null) {</span>
+<span class="nc" id="L190">				artCommand.setExecutor(new CommandHandler());</span>
+			} else {
+<span class="nc" id="L192">				getLogger().severe(&quot;Failed to bind /art or /art! Disabling...&quot;);</span>
+<span class="nc" id="L193">				getPluginLoader().disablePlugin(this);</span>
+<span class="nc" id="L194">				return;</span>
+			}
+			// load the artist button cache
+<span class="nc" id="L197">			headsCache = new HeadsCache(this);</span>
+<span class="fc" id="L198">		} catch( Exception e ) {</span>
+<span class="fc" id="L199">			getLogger().log(Level.SEVERE,&quot;Failure&quot;,e);</span>
+<span class="fc" id="L200">			getPluginLoader().disablePlugin(this);</span>
+<span class="nc" id="L201">		}</span>
+<span class="fc" id="L202">	}</span>
+
+	@Override
+	public void onDisable() {
+<span class="nc" id="L206">		previewManager.endAllPreviews();</span>
+<span class="nc" id="L207">		artistHandler.stop();</span>
+<span class="nc" id="L208">		menuHandler.closeAll();</span>
+<span class="nc" id="L209">		eventManager.unregisterAll();</span>
+<span class="nc" id="L210">		database.close();</span>
+//        recipeLoader.unloadRecipes();
+<span class="nc" id="L212">		reloadConfig();</span>
+<span class="nc" id="L213">		pluginInstance = null;</span>
+<span class="nc" id="L214">	}</span>
+
+	private boolean checkIfDatabaseUpgradeNeeded() {
+<span class="nc" id="L217">		DatabaseConverter flatDatabaseConverter = new FlatDatabaseConverter(instance());</span>
+<span class="nc" id="L218">		DatabaseConverter v2DatabaseConverter = new V2DatabaseConverter(instance());</span>
+<span class="nc bnc" id="L219" title="All 2 branches missed.">		if(flatDatabaseConverter.isNeeded()) {</span>
+<span class="nc" id="L220">			instance().getLogger().log(Level.WARNING,&quot;Flat Database Coversion needed! Pleae run '/art convert'&quot;);</span>
+<span class="nc" id="L221">			return true;</span>
+		}
+<span class="nc bnc" id="L223" title="All 2 branches missed.">		if(v2DatabaseConverter.isNeeded()) {</span>
+<span class="nc" id="L224">			instance().getLogger().log(Level.WARNING,&quot;V2 Database Coversion needed! Please run '/art convert'&quot;);</span>
+<span class="nc" id="L225">			return true;</span>
+		}
+<span class="nc" id="L227">		return false;</span>
+	}
+
+	public boolean writeResource(String resourcePath, File destination) {
+<span class="nc" id="L231">		String writeError = String.format(&quot;Cannot write resource '%s' to destination '%s'.&quot;, resourcePath, destination.getAbsolutePath());</span>
+<span class="nc bnc" id="L232" title="All 2 branches missed.">		if (!destination.exists())</span>
+			try {
+<span class="nc bnc" id="L234" title="All 2 branches missed.">				if (destination.createNewFile()) {</span>
+<span class="nc" id="L235">					Files.copy(getResource(resourcePath), destination.toPath(), StandardCopyOption.REPLACE_EXISTING);</span>
+				} else {
+<span class="nc" id="L237">					getLogger().warning(writeError + &quot; Error: Destination cannot be created.&quot;);</span>
+				}
+<span class="nc" id="L239">			} catch (IOException e) {</span>
+<span class="nc" id="L240">				getLogger().log(Level.SEVERE,writeError,e);</span>
+<span class="nc" id="L241">				return false;</span>
+<span class="nc" id="L242">			}</span>
+<span class="nc" id="L243">		return true;</span>
+	}
+
+	public Reader getTextResourceFile(String fileName) {
+<span class="fc" id="L247">		return getTextResource(fileName);</span>
+	}
+
+	/**
+	 * Retrieve primed gson instance.
+	 * 
+	 * @param pretty Enable pretty print.
+	 * @return GSON instance.
+	 */
+	public Gson getGson(boolean pretty) {
+<span class="nc" id="L257">		GsonBuilder builder = new GsonBuilder();</span>
+<span class="nc bnc" id="L258" title="All 2 branches missed.">		if (pretty) {</span>
+<span class="nc" id="L259">			builder.setPrettyPrinting();</span>
+		}
+<span class="nc" id="L261">		return builder.create();</span>
+	}
+
+		/**
+	 * Wrap retrieving map by id to keep depreciated method call in one place.
+	 * 
+	 * @param id The id of the map to retrieve.
+	 * @return The requested MapView or null if it cannot be loaded or does not exist.
+	 */
+	@SuppressWarnings( &quot;deprecation&quot; )
+	public static MapView getMap(int id) {
+<span class="fc" id="L272">		return Bukkit.getMap(id);</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Scheduler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Utils</a> &gt; <span class="el_source">Scheduler.java</span></div><h1>Scheduler.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Utils;
+
+import me.Fupery.ArtMap.ArtMap;
+
+import org.bukkit.Bukkit;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
+
+import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
+
+public class Scheduler {
+    //todo add checks that ArtMap isn't disabled
+    private final ArtMap plugin;
+<span class="pc" id="L17">    public TaskScheduler SYNC = new TaskScheduler() {</span>
+        @Override
+        public BukkitTask run(Runnable runnable) {
+<span class="nc" id="L20">            return Bukkit.getScheduler().runTask(plugin, runnable);</span>
+        }
+
+        @Override
+        public BukkitTask runLater(Runnable runnable, int delay) {
+<span class="nc" id="L25">            return Bukkit.getScheduler().runTaskLater(plugin, runnable, delay);</span>
+        }
+
+        @Override
+        public BukkitTask runTimer(Runnable runnable, int startDelay, int period) {
+<span class="nc" id="L30">            return Bukkit.getScheduler().runTaskTimer(plugin, runnable, startDelay, period);</span>
+        }
+    };
+<span class="pc" id="L33">    public TaskScheduler ASYNC = new TaskScheduler() {</span>
+        @Override
+        public BukkitTask run(Runnable runnable) {
+<span class="nc" id="L36">            return Bukkit.getScheduler().runTaskAsynchronously(plugin, runnable);</span>
+        }
+
+        @Override
+        public BukkitTask runLater(Runnable runnable, int delay) {
+<span class="nc" id="L41">            return Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, runnable, delay);</span>
+        }
+
+        @Override
+        public BukkitTask runTimer(Runnable runnable, int startDelay, int period) {
+<span class="nc" id="L46">            return Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, runnable, startDelay, period);</span>
+        }
+    };
+
+<span class="fc" id="L50">    public Scheduler(ArtMap plugin) {</span>
+<span class="fc" id="L51">        this.plugin = plugin;</span>
+<span class="fc" id="L52">    }</span>
+
+    public TaskHandler getTaskHandler(BukkitRunnable runnable) {
+<span class="nc" id="L55">        return new TaskHandler(runnable);</span>
+    }
+
+    public void runSafely(Runnable runnable) {
+<span class="nc bnc" id="L59" title="All 2 branches missed.">        if (!Bukkit.getServer().isPrimaryThread()) {</span>
+<span class="nc" id="L60">            SYNC.run(runnable);</span>
+        } else {
+<span class="nc" id="L62">            runnable.run();</span>
+        }
+<span class="nc" id="L64">    }</span>
+
+    public &lt;T&gt; T callSync(Callable&lt;T&gt; callable) {
+<span class="nc bnc" id="L67" title="All 2 branches missed.">        if (!Bukkit.getServer().isPrimaryThread()) {</span>
+<span class="nc" id="L68">            final BukkitFuture&lt;T&gt; future = new BukkitFuture&lt;&gt;(callable);</span>
+<span class="nc" id="L69">            future.run();</span>
+<span class="nc" id="L70">            synchronized (future.getLock()) {</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">                while (!future.isReady()) {</span>
+                    try {
+<span class="nc" id="L73">                        future.getLock().wait();</span>
+<span class="nc" id="L74">                    } catch (InterruptedException ignored) {</span>
+<span class="nc" id="L75">                    }</span>
+                }
+<span class="nc" id="L77">            }</span>
+
+<span class="nc" id="L79">            return future.get();</span>
+        }
+        
+        try {
+<span class="nc" id="L83">            return callable.call();</span>
+<span class="nc" id="L84">        } catch (Exception e) {</span>
+<span class="nc" id="L85">            ArtMap.instance().getLogger().log(Level.SEVERE,&quot;Error in sync call!&quot;,e);</span>
+<span class="nc" id="L86">            return null;</span>
+        }
+    }
+
+    public interface TaskScheduler {
+        BukkitTask run(Runnable runnable);
+
+        BukkitTask runLater(Runnable runnable, int delay);
+
+        BukkitTask runTimer(Runnable runnable, int startDelay, int period);
+    }
+
+    public class TaskHandler {
+        private BukkitRunnable runnable;
+
+<span class="nc" id="L101">        private TaskHandler(BukkitRunnable runnable) {</span>
+<span class="nc" id="L102">            this.runnable = runnable;</span>
+<span class="nc" id="L103">        }</span>
+
+        public void run(boolean async) {
+<span class="nc bnc" id="L106" title="All 2 branches missed.">            if (async) runnable.runTaskAsynchronously(plugin);</span>
+<span class="nc" id="L107">            else runnable.runTask(plugin);</span>
+<span class="nc" id="L108">        }</span>
+
+        public void runLater(boolean async, int delay) {
+<span class="nc bnc" id="L111" title="All 2 branches missed.">            if (async) runnable.runTaskLaterAsynchronously(plugin, delay);</span>
+<span class="nc" id="L112">            else runnable.runTaskLater(plugin, delay);</span>
+<span class="nc" id="L113">        }</span>
+
+        public void runTimer(boolean async, int startDelay, int period) {
+<span class="nc bnc" id="L116" title="All 2 branches missed.">            if (async) runnable.runTaskTimerAsynchronously(plugin, startDelay, period);</span>
+<span class="nc" id="L117">            else runnable.runTaskTimer(plugin, startDelay, period);</span>
+<span class="nc" id="L118">        }</span>
+    }
+
+    public static class BukkitFuture&lt;t&gt; {
+        private final AtomicBoolean isReady;
+        private final AtomicReference&lt;t&gt; reference;
+        private final Object lock;
+        private final Callable&lt;t&gt; callable;
+
+<span class="nc" id="L127">        BukkitFuture(Callable&lt;t&gt; callable) {</span>
+<span class="nc" id="L128">            this.isReady = new AtomicBoolean(false);</span>
+<span class="nc" id="L129">            this.reference = new AtomicReference&lt;&gt;(null);</span>
+<span class="nc" id="L130">            this.lock = new Object();</span>
+<span class="nc" id="L131">            this.callable = callable;</span>
+<span class="nc" id="L132">        }</span>
+
+        void run() {
+<span class="nc" id="L135">            ArtMap.instance().getScheduler().SYNC.run(() -&gt; {</span>
+<span class="nc" id="L136">                synchronized (lock) {</span>
+                    try {
+<span class="nc" id="L138">                        reference.set(callable.call());</span>
+<span class="nc" id="L139">                    } catch (Exception e) {</span>
+<span class="nc" id="L140">                        ArtMap.instance().getLogger().log(Level.SEVERE,&quot;Error in sync call!&quot;,e);</span>
+<span class="nc" id="L141">                    }</span>
+<span class="nc" id="L142">                    lock.notifyAll();</span>
+<span class="nc" id="L143">                }</span>
+<span class="nc" id="L144">            });</span>
+<span class="nc" id="L145">        }</span>
+
+        t get() {
+<span class="nc" id="L148">            return reference.get();</span>
+        }
+
+        Object getLock() {
+<span class="nc" id="L152">            return lock;</span>
+        }
+
+        boolean isReady() {
+<span class="nc" id="L156">            return isReady.get();</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

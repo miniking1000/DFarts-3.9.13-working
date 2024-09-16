@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Map.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.IO.Database</a> &gt; <span class="el_source">Map.java</span></div><h1>Map.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.IO.Database;
+
+import java.io.File;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Arrays;
+
+import org.bukkit.Bukkit;
+import org.bukkit.World;
+import org.bukkit.entity.Player;
+import org.bukkit.map.MapRenderer;
+import org.bukkit.map.MapView;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.IO.CompressedMap;
+import me.Fupery.ArtMap.Painting.GenericMapRenderer;
+
+public class Map {
+
+<span class="nc" id="L20">    static final byte[] BLANK_MAP = getBlankMap();</span>
+
+    private final int mapId;
+    private MapView mapView;
+
+<span class="nc" id="L25">    public Map(int mapId) {</span>
+<span class="nc" id="L26">        this.mapId = mapId;</span>
+<span class="nc" id="L27">        this.mapView = null;</span>
+<span class="nc" id="L28">    }</span>
+
+<span class="nc" id="L30">    public Map(MapView mapView) {</span>
+<span class="nc" id="L31">        this.mapId = mapView.getId();</span>
+<span class="nc" id="L32">        this.mapView = mapView;</span>
+<span class="nc" id="L33">    }</span>
+
+    private static byte[] getBlankMap() {
+<span class="nc" id="L36">        byte[] mapOutput = new byte[Size.MAX.value];</span>
+<span class="nc" id="L37">        Arrays.fill(mapOutput, ArtMap.instance().getDyePalette().getDefaultColour().getColour());</span>
+<span class="nc" id="L38">        return mapOutput;</span>
+    }
+
+    public static File getMapDataFolder() {
+<span class="nc" id="L42">        String pluginDir = ArtMap.instance().getDataFolder().getParentFile().getAbsolutePath();</span>
+<span class="nc" id="L43">        String rootDir = pluginDir.substring(0, pluginDir.lastIndexOf(File.separator));</span>
+        // Navigate to this world's data folder);
+<span class="nc" id="L45">        return new File(rootDir + File.separator + ArtMap.instance().getConfiguration().WORLD + File.separator + &quot;data&quot;);</span>
+    }
+
+    public CompressedMap compress() throws IOException {
+<span class="nc" id="L49">        return CompressedMap.compress(getMap());</span>
+    }
+
+    public byte[] readData() {
+<span class="nc" id="L53">        return ArtMap.instance().getReflection().getMap(getMap());</span>
+    }
+
+    public void setRenderer(MapRenderer renderer) {
+<span class="nc" id="L57">        MapView view = getMap();</span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">        if (view == null) {</span>
+<span class="nc" id="L59">            ArtMap.instance().getLogger().warning(&quot;MapView is null! :: &quot; + this.getMapId());</span>
+<span class="nc" id="L60">            return;</span>
+        }
+<span class="nc" id="L62">        view.getRenderers().forEach(view::removeRenderer);</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">        if (renderer != null) {</span>
+<span class="nc" id="L64">            view.addRenderer(renderer);</span>
+        }
+<span class="nc" id="L66">    }</span>
+
+    public Map cloneMap() throws SQLException, IOException, NoSuchFieldException, IllegalAccessException {
+<span class="nc" id="L69">        World world = Bukkit.getServer().getWorld(ArtMap.instance().getConfiguration().WORLD);</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">        if (world == null) {</span>
+<span class="nc" id="L71">            ArtMap.instance().getLogger().severe(&quot;Tried to create MapView instance for Non-existent world, &quot; + ArtMap.instance().getConfiguration().WORLD);</span>
+<span class="nc" id="L72">            return null;</span>
+        }
+
+<span class="nc" id="L75">        MapView newMapView = Bukkit.getServer().createMap(world);</span>
+<span class="nc" id="L76">        Map newMap = new Map(newMapView);</span>
+<span class="nc" id="L77">        byte[] mapData = readData();</span>
+<span class="nc" id="L78">        newMap.setMap(mapData);</span>
+<span class="nc" id="L79">        ArtMap.instance().getArtDatabase().saveInProgressArt(newMap, mapData);</span>
+<span class="nc" id="L80">        return newMap;</span>
+    }
+
+    public MapView getMap() {
+<span class="nc bnc" id="L84" title="All 2 branches missed.">        if(this.mapView == null) {</span>
+<span class="nc" id="L85">            this.mapView = ArtMap.getMap(this.mapId);</span>
+        }
+<span class="nc" id="L87">        return this.mapView;</span>
+    }
+
+    public void clear() throws NoSuchFieldException, IllegalAccessException {
+<span class="nc" id="L91">        setMap(BLANK_MAP,false);</span>
+<span class="nc" id="L92">    }</span>
+
+    public void setMap(byte[] map) throws NoSuchFieldException, IllegalAccessException {
+<span class="nc" id="L95">        setMap(map, true);</span>
+<span class="nc" id="L96">    }</span>
+
+    public void setMap(byte[] map, boolean updateRenderer) throws NoSuchFieldException, IllegalAccessException {
+<span class="nc bnc" id="L99" title="All 2 branches missed.">        if(this.mapView == null) {</span>
+<span class="nc" id="L100">            getMap();</span>
+        }
+<span class="nc" id="L102">        ArtMap.instance().getReflection().setWorldMap(mapView, map);</span>
+<span class="nc bnc" id="L103" title="All 2 branches missed.">        if (updateRenderer) {</span>
+<span class="nc" id="L104">            MapRenderer renderer = new GenericMapRenderer(map);</span>
+<span class="nc" id="L105">            setRenderer(renderer);</span>
+        }
+<span class="nc" id="L107">    }</span>
+
+    public boolean exists() {
+<span class="nc bnc" id="L110" title="All 2 branches missed.">        return getMap() != null;</span>
+    }
+
+    public File getDataFile() {
+<span class="nc" id="L114">        return new File(getMapDataFolder(), &quot;map_&quot; + mapId + &quot;.dat&quot;);</span>
+    }
+
+    public void update(Player player) {
+<span class="nc" id="L118">        ArtMap.instance().getScheduler().runSafely(() -&gt; player.sendMap(getMap()));</span>
+<span class="nc" id="L119">    }</span>
+
+    public int getMapId() {
+<span class="nc" id="L122">        return mapId;</span>
+    }
+
+    /*
+    private MapView getMapView() {
+        //todo We probably don't need sophisticated mapView caching right now
+        return (mapView != null) ? mapView :
+                (mapView = ArtMap.instance().getScheduler().callSync(() -&gt; Bukkit.getMap(mapId)));
+    }*/
+
+<span class="nc" id="L132">    public enum Size {</span>
+<span class="nc" id="L133">        MAX(128 * 128), STANDARD(32 * 32);</span>
+        public final int value;
+
+<span class="nc" id="L136">        Size(int length) {</span>
+<span class="nc" id="L137">            this.value = length;</span>
+<span class="nc" id="L138">        }</span>
+
+        public int size() {
+<span class="nc" id="L141">            return value;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Fill.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Painting.Brushes</a> &gt; <span class="el_source">Fill.java</span></div><h1>Fill.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Painting.Brushes;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
+import me.Fupery.ArtMap.api.Colour.SimpleDye;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.Painting.Brush;
+import me.Fupery.ArtMap.Painting.CachedPixel;
+import me.Fupery.ArtMap.Painting.CanvasRenderer;
+import me.Fupery.ArtMap.api.Colour.ArtDye;
+
+public class Fill extends Brush {
+    private final ArrayList&lt;CachedPixel&gt; lastFill;
+    private final int axisLength;
+    private final Dropper dropper;
+
+    public Fill(CanvasRenderer renderer, Player player, Dropper dropper) {
+<span class="nc" id="L24">        super(renderer, player);</span>
+<span class="nc" id="L25">        lastFill = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L26">        this.axisLength = getAxisLength();</span>
+<span class="nc" id="L27">        this.dropper = dropper;</span>
+<span class="nc" id="L28">        cooldownMilli = 350;</span>
+<span class="nc" id="L29">    }</span>
+
+    @Override
+    public List&lt;CachedPixel&gt; paint(BrushAction action, ItemStack bucket, long strokeTime) {
+
+<span class="nc bnc" id="L34" title="All 2 branches missed.">        if (action == BrushAction.LEFT_CLICK) {</span>
+<span class="nc" id="L35">            ArtDye colour = ArtMap.instance().getDyePalette().getDye(this.player.getInventory().getItemInOffHand());</span>
+<span class="nc bnc" id="L36" title="All 6 branches missed.">            if (colour == null &amp;&amp; dropper.checkMaterial(this.player.getInventory().getItemInOffHand()) &amp;&amp; dropper.getColour() != null) {</span>
+<span class="nc" id="L37">                colour = new SimpleDye(dropper.getColour());</span>
+            }
+
+<span class="nc bnc" id="L40" title="All 2 branches missed.">            if (colour != null) {</span>
+<span class="nc" id="L41">                clean();</span>
+<span class="nc" id="L42">                fillPixel(colour);</span>
+            }
+
+<span class="nc bnc" id="L45" title="All 2 branches missed.">        } else if (!lastFill.isEmpty()) {</span>
+<span class="nc bnc" id="L46" title="All 2 branches missed.">            for (CachedPixel cachedPixel : lastFill) {</span>
+<span class="nc" id="L47">                addPixel(cachedPixel.x, cachedPixel.y, cachedPixel.dye);</span>
+<span class="nc" id="L48">            }</span>
+        }
+<span class="nc" id="L50">        return this.lastFill;</span>
+    }
+
+    @Override
+    public boolean checkMaterial(ItemStack bucket) {
+<span class="nc bnc" id="L55" title="All 2 branches missed.">        return bucket.getType() == Material.BUCKET;</span>
+    }
+
+    @Override
+    public void clean() {
+<span class="nc" id="L60">        lastFill.clear();</span>
+<span class="nc" id="L61">    }</span>
+
+    private void fillPixel(ArtDye colour) {
+<span class="nc" id="L64">        final byte[] pixel = getCurrentPixel();</span>
+<span class="nc bnc" id="L65" title="All 2 branches missed.">        if (pixel == null) return;</span>
+
+<span class="nc" id="L67">        final LinkedList&lt;byte[]&gt; queue = new LinkedList&lt;&gt;();</span>
+<span class="nc" id="L68">        final boolean[][] coloured = new boolean[axisLength][axisLength];</span>
+<span class="nc" id="L69">        final byte clickedColour = getPixelBuffer()[pixel[0]][pixel[1]];</span>
+
+<span class="nc" id="L71">        queue.add(pixel);</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">        while (!queue.isEmpty()){</span>
+<span class="nc" id="L73">            fillBucket(coloured, queue.poll(), clickedColour, colour, queue);</span>
+        }
+<span class="nc" id="L75">    }</span>
+
+    private void fillBucket(boolean[][] coloured, byte[] pixel, byte sourceColour, ArtDye dye, LinkedList&lt;byte[]&gt; queue) {
+<span class="nc" id="L78">        byte x = pixel[0];</span>
+<span class="nc" id="L79">        byte y = pixel[1];</span>
+
+<span class="nc bnc" id="L81" title="All 4 branches missed.">        if (x &lt; 0 || y &lt; 0) return;</span>
+<span class="nc bnc" id="L82" title="All 4 branches missed.">        if (x &gt;= axisLength || y &gt;= axisLength) return;</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">        if (coloured[x][y]) return;</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">        if (getPixelBuffer()[x][y] != sourceColour) return;</span>
+
+<span class="nc" id="L86">        coloured[x][y] = true;</span>
+<span class="nc" id="L87">        lastFill.add(new CachedPixel(x, y, sourceColour));</span>
+<span class="nc" id="L88">        dye.apply(getPixelAt(x, y));</span>
+
+<span class="nc" id="L90">        queue.add(new byte[]{(byte) (x - 1), y});</span>
+<span class="nc" id="L91">        queue.add(new byte[]{(byte) (x + 1), y});</span>
+<span class="nc" id="L92">        queue.add(new byte[]{x, (byte) (y - 1)});</span>
+<span class="nc" id="L93">        queue.add(new byte[]{x, (byte) (y + 1)});</span>
+<span class="nc" id="L94">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

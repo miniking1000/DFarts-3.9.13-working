@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CommandImport.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Command</a> &gt; <span class="el_source">CommandImport.java</span></div><h1>CommandImport.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Command;
+
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.text.MessageFormat;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.UUID;
+import java.util.logging.Level;
+import java.util.stream.Collectors;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.Command.CommandExport.ArtworkExport;
+import me.Fupery.ArtMap.api.Config.Lang;
+
+class CommandImport extends AsyncCommand {
+
+    CommandImport() {
+<span class="nc" id="L28">        super(null, &quot;/art import &lt;-all|-artist|-title&gt; [name] &lt;import_file_name&gt;.json&quot;, true);</span>
+<span class="nc" id="L29">    }</span>
+
+    @Override
+    public void runCommand(CommandSender sender, String[] args, ReturnMessage msg) {
+<span class="nc bnc" id="L33" title="All 2 branches missed.">        if (!sender.hasPermission(&quot;artmap.admin&quot;)) {</span>
+<span class="nc" id="L34">            msg.message = Lang.NO_PERM.get();</span>
+<span class="nc" id="L35">            return;</span>
+        }
+
+        // args[0] is export
+<span class="nc bnc" id="L39" title="All 2 branches missed.">        if (args.length &lt; 3) {</span>
+            // TODO: need usage
+<span class="nc" id="L41">            msg.message = Lang.COMMAND_EXPORT.get();</span>
+<span class="nc" id="L42">            return;</span>
+        }
+
+<span class="nc" id="L45">        List&lt;ArtworkExport&gt; artToImport = new LinkedList&lt;&gt;();</span>
+<span class="nc" id="L46">        String importFilename = null;</span>
+
+        // get the import file name
+<span class="nc bnc" id="L49" title="All 3 branches missed.">        switch (args[1]) {</span>
+        case &quot;-all&quot;:
+<span class="nc" id="L51">            importFilename = args[2];</span>
+<span class="nc" id="L52">            break;</span>
+        case &quot;-artist&quot;:
+        case &quot;-title&quot;:
+<span class="nc bnc" id="L55" title="All 2 branches missed.">            if (args.length &lt; 4) {</span>
+                // TODO: need usage
+<span class="nc" id="L57">                msg.message = Lang.COMMAND_EXPORT.get();</span>
+<span class="nc" id="L58">                return;</span>
+            }
+<span class="nc" id="L60">            importFilename = args[3];</span>
+<span class="nc" id="L61">            break;</span>
+        default:
+            // TODO: need usage
+<span class="nc" id="L64">            msg.message = Lang.COMMAND_EXPORT.get();</span>
+<span class="nc" id="L65">            return;</span>
+        }
+
+<span class="nc" id="L68">        File importFile = new File(ArtMap.instance().getDataFolder(), importFilename);</span>
+<span class="nc bnc" id="L69" title="All 2 branches missed.">        if(!importFile.exists()) {</span>
+<span class="nc" id="L70">            importFilename+=&quot;.json&quot;;</span>
+        }
+        //add .json and look again
+<span class="nc" id="L73">        importFile = new File(ArtMap.instance().getDataFolder(), importFilename);</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">        if (!importFile.exists()) {</span>
+<span class="nc" id="L75">            sender.sendMessage(&quot;Import file cannot be found!&quot;);</span>
+<span class="nc" id="L76">            return;</span>
+        }
+        try {
+<span class="nc" id="L79">            FileReader reader = new FileReader(importFile);</span>
+<span class="nc" id="L80">            Gson gson = ArtMap.instance().getGson(true);</span>
+<span class="nc" id="L81">            Type collectionType = new TypeToken&lt;List&lt;ArtworkExport&gt;&gt;() {</span>
+<span class="nc" id="L82">            }.getType();</span>
+<span class="nc" id="L83">            artToImport = gson.fromJson(reader, collectionType);</span>
+<span class="nc" id="L84">            reader.close();</span>
+<span class="nc" id="L85">        } catch (IOException e) {</span>
+<span class="nc" id="L86">            ArtMap.instance().getLogger().log(Level.SEVERE, &quot;Failure reading import!&quot;, e);</span>
+<span class="nc" id="L87">        }</span>
+
+<span class="nc" id="L89">        sender.sendMessage(MessageFormat.format(&quot;{0} artworks available for import.&quot;, artToImport.size()));</span>
+<span class="nc bnc" id="L90" title="All 4 branches missed.">        switch (args[1]) {</span>
+        case &quot;-all&quot;:
+<span class="nc" id="L92">            this.delayedImport(sender,artToImport);</span>
+<span class="nc" id="L93">            break;</span>
+        case &quot;-artist&quot;:
+<span class="nc bnc" id="L95" title="All 2 branches missed.">            if (args.length &lt; 4) {</span>
+                // TODO: need usage
+<span class="nc" id="L97">                msg.message = Lang.COMMAND_EXPORT.get();</span>
+<span class="nc" id="L98">                return;</span>
+            }
+<span class="nc" id="L100">            List&lt;ArtworkExport&gt; byArtist = new LinkedList&lt;&gt;();</span>
+            try {
+<span class="nc" id="L102">                UUID id = UUID.fromString(args[2]);</span>
+<span class="nc" id="L103">                byArtist = artToImport.stream().filter(art -&gt; {</span>
+<span class="nc" id="L104">                    return art.getArtist().equals(id);</span>
+<span class="nc" id="L105">                }).collect(Collectors.toList());</span>
+<span class="nc" id="L106">            } catch (Exception exp) {</span>
+                // its a name then
+<span class="nc" id="L108">                Player p = Bukkit.getPlayer(args[2]);</span>
+<span class="nc bnc" id="L109" title="All 2 branches missed.">                if(p==null) {</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">                    if(sender != null) {</span>
+<span class="nc" id="L111">                        sender.sendMessage(&quot;Player not found! :: &quot; + args[2]);</span>
+<span class="nc" id="L112">                        return;</span>
+                    }
+                }
+<span class="nc" id="L115">                byArtist = artToImport.stream().filter(art -&gt; {</span>
+<span class="nc" id="L116">                    return art.getArtist().equals(p.getUniqueId());</span>
+<span class="nc" id="L117">                }).collect(Collectors.toList());</span>
+<span class="nc" id="L118">            }</span>
+<span class="nc" id="L119">            this.delayedImport(sender,byArtist);</span>
+<span class="nc" id="L120">            break;</span>
+        case &quot;-title&quot;:
+<span class="nc bnc" id="L122" title="All 2 branches missed.">            if (args.length &lt; 4) {</span>
+                // TODO: need usage
+<span class="nc" id="L124">                msg.message = Lang.COMMAND_EXPORT.get();</span>
+<span class="nc" id="L125">                return;</span>
+            }
+<span class="nc" id="L127">            String title = args[2];</span>
+<span class="nc" id="L128">            List&lt;ArtworkExport&gt; byTitle = artToImport.stream().filter(art -&gt; {</span>
+<span class="nc" id="L129">                return art.getTitle().equals(title);</span>
+<span class="nc" id="L130">            }).collect(Collectors.toList());</span>
+<span class="nc" id="L131">            this.delayedImport(sender,byTitle);</span>
+<span class="nc" id="L132">            break;</span>
+        default:
+            // TODO: need usage
+<span class="nc" id="L135">            msg.message = Lang.COMMAND_EXPORT.get();</span>
+<span class="nc" id="L136">            return;</span>
+        }
+<span class="nc" id="L138">        sender.sendMessage(&quot;Import complete. Check the console for errors.&quot;);</span>
+<span class="nc" id="L139">    }</span>
+
+    //Slows the import down a bit to keep from lagging the main thread (10 per second)
+    private void delayedImport(CommandSender sender,List&lt;ArtworkExport&gt; arts) {
+<span class="nc" id="L143">        long delayConfig = ArtMap.instance().getConfig().getInt(&quot;importDelay&quot;);</span>
+<span class="nc" id="L144">        ArtMap.instance().getLogger().info(&quot;Delay=&quot;+delayConfig);</span>
+        //0 if not set so move to 100 default
+<span class="nc bnc" id="L146" title="All 2 branches missed.">        final long delay = delayConfig&lt;=0 ? 100 : delayConfig;</span>
+<span class="nc" id="L147">        Bukkit.getScheduler().runTaskAsynchronously(ArtMap.instance(), () -&gt; {</span>
+<span class="nc" id="L148">            arts.forEach(art -&gt; {</span>
+                try {
+<span class="nc" id="L150">                    art.importArtwork(sender);</span>
+<span class="nc" id="L151">                    Thread.sleep(delay);</span>
+<span class="nc" id="L152">                } catch (InterruptedException e) {</span>
+                    // don't care
+<span class="nc" id="L154">                }</span>
+<span class="nc" id="L155">            });</span>
+<span class="nc" id="L156">        });</span>
+<span class="nc" id="L157">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

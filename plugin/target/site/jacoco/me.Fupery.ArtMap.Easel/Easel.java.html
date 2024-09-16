@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Easel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Easel</a> &gt; <span class="el_source">Easel.java</span></div><h1>Easel.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Easel;
+
+import java.lang.ref.WeakReference;
+import java.sql.SQLException;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
+
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Sign;
+import org.bukkit.block.sign.Side;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemFrame;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.Exception.ArtMapException;
+import me.Fupery.ArtMap.Recipe.ArtMaterial;
+import me.Fupery.ArtMap.Utils.ChunkLocation;
+import me.Fupery.ArtMap.Utils.LocationHelper;
+
+import static me.Fupery.ArtMap.Easel.EaselPart.EASEL_ID;
+
+public class Easel {
+
+    private final Location location;
+    private final ChunkLocation chunk;
+<span class="nc" id="L36">    private final WeakEntity&lt;ArmorStand&gt; stand = new WeakEntity&lt;&gt;(EaselPart.STAND);</span>
+<span class="nc" id="L37">    private final WeakEntity&lt;ItemFrame&gt; frame = new WeakEntity&lt;&gt;(EaselPart.FRAME);</span>
+<span class="nc" id="L38">    private final WeakEntity&lt;ArmorStand&gt; seat = new WeakEntity&lt;&gt;(EaselPart.SEAT);</span>
+<span class="nc" id="L39">    private final WeakEntity&lt;ArmorStand&gt; marker = new WeakEntity&lt;&gt;(EaselPart.MARKER);</span>
+    private final AtomicBoolean spawned;
+    private UUID user;
+
+<span class="nc" id="L43">    private Easel(Location location, boolean hasBeenSpawned) {</span>
+<span class="nc" id="L44">        this.location = location;</span>
+<span class="nc" id="L45">        this.chunk = new ChunkLocation(location.getChunk());</span>
+<span class="nc" id="L46">        user = null;</span>
+<span class="nc" id="L47">        spawned = new AtomicBoolean(hasBeenSpawned);</span>
+<span class="nc" id="L48">    }</span>
+
+    /**
+     * Attempts to spawn an easel at the location provided, facing the direction
+     * provided.
+     *
+     * @param location The location where the easel will be spawned.
+     * @param facing   The direction the easel will face. Valid directions are
+     *                 NORTH, SOUTH, EAST and WEST.
+     * @return A reference to the spawned easel if it was spawned successfully, or
+     *         null if the area is obstructed.
+     */
+    public static Easel spawnEasel(Location location, BlockFace facing) {
+<span class="nc" id="L61">        Easel easel = new Easel(location, false);</span>
+<span class="nc" id="L62">        easel.place(location, facing);</span>
+
+<span class="nc bnc" id="L64" title="All 2 branches missed.">        if (easel.exists()) {</span>
+<span class="nc" id="L65">            ArtMap.instance().getEasels().put(easel.getLocation(), easel);</span>
+<span class="nc" id="L66">            easel.spawned.set(true);</span>
+<span class="nc" id="L67">            return easel;</span>
+        }
+<span class="nc" id="L69">        easel.breakEasel();</span>
+<span class="nc" id="L70">        return null;</span>
+    }
+
+    /**
+     * Attempts to get an easel from one of its parts.
+     *
+     * @param partLocation The location of the easel part.
+     * @param part         The easel part being used to find an easel.
+     * @return A reference to the part's easel, or null if none can be found.
+     */
+    public static Easel getEasel(Location partLocation, EaselPart part) {
+<span class="nc" id="L81">        Location easelLocation = part.getEaselPos(partLocation, EaselPart.getFacing(partLocation.getYaw()));</span>
+
+<span class="nc bnc" id="L83" title="All 2 branches missed.">        if (ArtMap.instance().getEasels().containsKey(easelLocation)) {</span>
+<span class="nc" id="L84">            return ArtMap.instance().getEasels().get(easelLocation);</span>
+        }
+<span class="nc" id="L86">        Easel easel = new Easel(easelLocation, true);</span>
+<span class="nc" id="L87">        easel.spawned.set(true);</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">        if (easel.exists()) {</span>
+<span class="nc" id="L89">            ArtMap.instance().getEasels().put(easel.getLocation(), easel);</span>
+<span class="nc" id="L90">            easel.spawned.set(true);</span>
+<span class="nc" id="L91">            return easel;</span>
+        }
+<span class="nc" id="L93">        return null;</span>
+    }
+
+    /**
+     * Attempts to find an easel at the location provided.
+     *
+     * @param location The location at which to check for an easel.
+     * @return True if an easel spawned at this location, or false if not.
+     */
+    public static boolean checkForEasel(Location location) {
+<span class="nc bnc" id="L103" title="All 2 branches missed.">        if (new Easel(location, true).exists()) {</span>
+<span class="nc" id="L104">            return true;</span>
+        }
+<span class="nc bnc" id="L106" title="All 2 branches missed.">        if (ArtMap.instance().getEasels().containsKey(location)) {</span>
+<span class="nc" id="L107">            ArtMap.instance().getEasels().remove(location);</span>
+        }
+<span class="nc" id="L109">        return false;</span>
+    }
+
+    private void place(Location location, BlockFace facing) {
+<span class="nc bnc" id="L113" title="All 2 branches missed.">        if (exists())</span>
+<span class="nc" id="L114">            breakEasel();</span>
+<span class="nc" id="L115">        EaselPart.SIGN.spawn(location, facing);</span>
+<span class="nc" id="L116">        stand.spawn(location, facing);</span>
+<span class="nc" id="L117">        frame.spawn(location, facing);</span>
+<span class="nc" id="L118">        spawned.set(true);</span>
+<span class="nc" id="L119">    }</span>
+
+    private boolean exists() {
+<span class="nc bnc" id="L122" title="All 2 branches missed.">        if (!spawned.get())</span>
+<span class="nc" id="L123">            return false;</span>
+<span class="nc" id="L124">        Collection&lt;Entity&gt; entities = getNearbyEntities();</span>
+<span class="nc bnc" id="L125" title="All 4 branches missed.">        if (stand.exists(entities) || frame.exists(entities)) {</span>
+<span class="nc" id="L126">            return true;</span>
+        }
+<span class="nc" id="L128">        spawned.set(false);</span>
+<span class="nc" id="L129">        return false;</span>
+    }
+
+    private boolean hasSign() {
+<span class="nc" id="L133">        BlockState state = location.getBlock().getState();</span>
+<span class="nc bnc" id="L134" title="All 4 branches missed.">        return (location.getBlock().getType() == ArtMap.instance().getBukkitVersion().getVersion().getWallSign()</span>
+<span class="nc bnc" id="L135" title="All 2 branches missed.">                &amp;&amp; state instanceof Sign &amp;&amp; ((Sign) state).getSide(Side.FRONT).getLine(3).equals(EaselPart.ARBITRARY_SIGN_ID));</span>
+    }
+
+    /**
+     * Mounts a canvas on the easel, with an id defined by the canvas provided.
+     *
+     * @param canvas The canvas that will be placed on the easel.
+     */
+    public void mountCanvas(Canvas canvas) {
+        try {
+<span class="nc" id="L145">            removeItem();</span>
+<span class="nc" id="L146">            setItem(canvas.getEaselItem());</span>
+<span class="nc" id="L147">            EaselEffect.MOUNT_CANVAS.playEffect(getCentreLocation());</span>
+<span class="nc" id="L148">        } catch (Exception e) {</span>
+<span class="nc" id="L149">            ArtMap.instance().getLogger().log(Level.SEVERE, &quot;Error placing canvas!&quot;, e);</span>
+<span class="nc" id="L150">        }</span>
+<span class="nc" id="L151">    }</span>
+
+    /**
+     * Removes the current item mounted on the easel. If the item is an unsaved
+     * canvas, an in progress artwork will be dropped at the easel. If the item is an edited
+     * artwork, a copy of the original artwork wil be dropped.
+     * 
+     * @throws SQLException
+     * @throws ArtMapException
+     */
+    public void removeItem() throws SQLException, ArtMapException {
+<span class="nc" id="L162">        ItemStack item = getItem().clone();</span>
+        //if the item currently on the easel is air we don't need to do anything
+<span class="nc bnc" id="L164" title="All 2 branches missed.">        if(item.getType().isAir()) {</span>
+<span class="nc" id="L165">            return;</span>
+        }
+        try {
+<span class="nc" id="L168">            Optional&lt;Canvas&gt; canvas = Canvas.getCanvas(item);</span>
+<span class="nc" id="L169">            setItem(new ItemStack(Material.AIR));</span>
+            //If Canvas has failed to load someting has gone wrong and hand them a fresh canvas back.
+<span class="nc bnc" id="L171" title="All 2 branches missed.">            if(canvas.isPresent()) {</span>
+<span class="nc" id="L172">                location.getWorld().dropItem(location, canvas.get().getEaselItem());</span>
+            } else {
+<span class="nc" id="L174">                location.getWorld().dropItem(location,ArtMaterial.CANVAS.getItem());</span>
+            }
+<span class="nc" id="L176">        } catch (ArtMapException ame) {</span>
+<span class="nc" id="L177">            location.getWorld().dropItemNaturally(location, item);</span>
+<span class="nc" id="L178">            setItem(new ItemStack(Material.AIR));</span>
+<span class="nc" id="L179">            throw new ArtMapException(&quot;Something other then ART was on the easel?!&quot;, ame);</span>
+<span class="nc" id="L180">        }</span>
+<span class="nc" id="L181">    }</span>
+
+    /**
+     * Breaks the easel, dropping it along with any mounted items.
+     */
+    public void breakEasel() {
+<span class="nc bnc" id="L187" title="All 2 branches missed.">        if (!spawned.getAndSet(false)) return;</span>
+
+<span class="nc" id="L189">        ArtMap.instance().getScheduler().SYNC.run(() -&gt; {</span>
+            try {
+<span class="nc" id="L191">                final Collection&lt;Entity&gt; entities = getNearbyEntities();</span>
+<span class="nc bnc" id="L192" title="All 2 branches missed.">                if (frame.exists(entities)) {</span>
+<span class="nc" id="L193">                    removeItem();</span>
+<span class="nc bnc" id="L194" title="All 2 branches missed.">                    if (frame.remove(entities)) location.getWorld().dropItemNaturally(location, ArtMaterial.EASEL.getItem());</span>
+                }
+<span class="nc" id="L196">                location.getBlock().setType(Material.AIR);</span>
+<span class="nc" id="L197">                EaselEffect.BREAK.playEffect(getCentreLocation());</span>
+<span class="nc" id="L198">                stand.remove(entities);</span>
+<span class="nc" id="L199">                ArtMap.instance().getEasels().remove(location);</span>
+<span class="nc" id="L200">            } catch (Exception e) {</span>
+<span class="nc" id="L201">                ArtMap.instance().getLogger().log(Level.SEVERE,&quot;Error removing easel!&quot;,e);</span>
+<span class="nc" id="L202">            }</span>
+<span class="nc" id="L203">        });</span>
+<span class="nc" id="L204">    }</span>
+
+    /**
+     * @return The direction this easel is facing.
+     */
+    public BlockFace getFacing() {
+<span class="nc" id="L210">        ItemFrame iFrame = this.frame.get();</span>
+<span class="nc bnc" id="L211" title="All 2 branches missed.">        return (iFrame != null) ? iFrame.getFacing() : null;</span>
+    }
+
+    /**
+     * Plays an effect at the easel.
+     *
+     * @param interactionType the type of interaction.
+     */
+    public void playEffect(EaselEffect interactionType) {
+<span class="nc" id="L220">        interactionType.playEffect(getCentreLocation());</span>
+<span class="nc" id="L221">    }</span>
+
+    private Location getCentreLocation() {
+<span class="nc" id="L224">        Location cLoc = this.location.clone();</span>
+<span class="nc" id="L225">        BlockFace facing = getFacing();</span>
+<span class="nc bnc" id="L226" title="All 2 branches missed.">        return (facing == null) ? location : new LocationHelper(cLoc).centre().shiftTowards(getFacing(), 0.65);</span>
+    }
+
+    public Location getLocation() {
+<span class="nc" id="L230">        return location;</span>
+    }
+
+    public boolean seatUser(Player user) {
+<span class="nc" id="L234">        ArmorStand aSeat = this.seat.spawn(location, getFacing());</span>
+<span class="nc" id="L235">        ArmorStand aMarker = this.marker.spawn(location, getFacing());</span>
+
+<span class="nc bnc" id="L237" title="All 4 branches missed.">        if (aSeat == null || aMarker == null) return false;</span>
+<span class="nc" id="L238">        Location eLoc = user.getEyeLocation();</span>
+<span class="nc" id="L239">        EaselEffect.START_RIDING.playEffect(eLoc);</span>
+<span class="nc" id="L240">		aSeat.addPassenger(user);</span>
+<span class="nc bnc" id="L241" title="All 2 branches missed.">		if (!aSeat.getPassengers().contains(user)) {</span>
+<span class="nc" id="L242">			return false;</span>
+		}
+
+<span class="nc" id="L245">        this.user = user.getUniqueId();</span>
+<span class="nc" id="L246">        return true;</span>
+    }
+
+    public boolean isBeingUsed() {
+<span class="nc bnc" id="L250" title="All 2 branches missed.">        return getUser() != null;</span>
+    }
+
+    private UUID getUser() {
+<span class="nc bnc" id="L254" title="All 2 branches missed.">        if (user == null) return null;</span>
+<span class="nc bnc" id="L255" title="All 2 branches missed.">        if (!ArtMap.instance().getArtistHandler().containsPlayer(user)) removeUser();</span>
+<span class="nc" id="L256">        return user;</span>
+    }
+
+    public void removeUser() {
+<span class="nc" id="L260">        Collection&lt;Entity&gt; entities = getNearbyEntities();</span>
+<span class="nc" id="L261">        seat.remove(entities);</span>
+<span class="nc" id="L262">        marker.remove(entities);</span>
+<span class="nc" id="L263">        this.user = null;</span>
+<span class="nc" id="L264">        playEffect(EaselEffect.STOP_RIDING);</span>
+<span class="nc" id="L265">    }</span>
+
+    private Collection&lt;Entity&gt; getNearbyEntities() {
+<span class="nc" id="L268">        return location.getWorld().getNearbyEntities(location, 2, 2, 2);</span>
+    }
+
+    /**
+     * @return The item currently mounted on the easel, or null if there is none.
+     */
+    public ItemStack getItem() {
+<span class="nc bnc" id="L275" title="All 2 branches missed.">        return (frame.get() != null) ? frame.get().getItem() : new ItemStack(Material.AIR);</span>
+    }
+
+    public void setItem(ItemStack itemStack) {
+<span class="nc" id="L279">        frame.get().setItem(itemStack);</span>
+<span class="nc" id="L280">    }</span>
+
+    /**
+     * @return True if an item is currently mounted on the easel.
+     */
+    public boolean hasItem() {
+<span class="nc bnc" id="L286" title="All 4 branches missed.">        return frame.get() != null &amp;&amp; frame.get().getItem().getType() != Material.AIR;</span>
+    }
+
+    public ChunkLocation getChunk() {
+<span class="nc" id="L290">        return chunk;</span>
+    }
+
+    class WeakEntity&lt;T extends Entity&gt; {
+        private final EaselPart type;
+        private WeakReference&lt;T&gt; entityRef;
+
+<span class="nc" id="L297">        WeakEntity(EaselPart type) {</span>
+<span class="nc" id="L298">            this.type = type;</span>
+<span class="nc" id="L299">            entityRef = new WeakReference&lt;&gt;(null);</span>
+<span class="nc" id="L300">        }</span>
+
+<span class="nc" id="L302">        WeakEntity(EaselPart type, T entity) {</span>
+<span class="nc" id="L303">            this.type = type;</span>
+<span class="nc" id="L304">            this.entityRef = new WeakReference&lt;&gt;(entity);</span>
+<span class="nc" id="L305">        }</span>
+
+        T spawn(Location location, BlockFace facing) {
+<span class="nc bnc" id="L308" title="All 2 branches missed.">            if (exists(getNearbyEntities())) remove();</span>
+            @SuppressWarnings(&quot;unchecked&quot;)
+<span class="nc" id="L310">            T entity = (T) type.spawn(location, facing);</span>
+<span class="nc" id="L311">            entityRef = new WeakReference&lt;&gt;(entity);</span>
+<span class="nc" id="L312">            return entity;</span>
+        }
+
+        boolean remove(Collection&lt;Entity&gt; entities) {
+<span class="nc" id="L316">            Entity entity = get(entities);</span>
+<span class="nc bnc" id="L317" title="All 4 branches missed.">            if (entity != null &amp;&amp; entity.isValid()) entity.remove();</span>
+<span class="nc" id="L318">            else return false;</span>
+<span class="nc" id="L319">            entityRef = new WeakReference&lt;&gt;(null);</span>
+<span class="nc" id="L320">            return true;</span>
+        }
+
+        boolean remove() {
+<span class="nc" id="L324">            return remove(getNearbyEntities());</span>
+        }
+
+        boolean exists(Collection&lt;Entity&gt; entities) {
+<span class="nc bnc" id="L328" title="All 2 branches missed.">            return get(entities) != null;</span>
+        }
+
+        @SuppressWarnings(&quot;unchecked&quot;)
+        T get(Collection&lt;Entity&gt; entities) {
+<span class="nc" id="L333">            T entity = entityRef.get();</span>
+<span class="nc bnc" id="L334" title="All 4 branches missed.">            if (entity != null &amp;&amp; entity.isValid()) {</span>
+<span class="nc" id="L335">                return entity;</span>
+            }
+<span class="nc bnc" id="L337" title="All 2 branches missed.">            if (entities == null) entities = getNearbyEntities();</span>
+
+<span class="nc bnc" id="L339" title="All 2 branches missed.">            for (Entity e : entities) {</span>
+<span class="nc bnc" id="L340" title="All 2 branches missed.">                if (EaselPart.getPartType(e) == type) {</span>
+<span class="nc" id="L341">                    BlockFace facing = EaselPart.getFacing(e.getLocation().getYaw());</span>
+<span class="nc bnc" id="L342" title="All 4 branches missed.">                    if (type.getEaselPos(e.getLocation(), facing).equals(location) &amp;&amp; Objects.equals(e.getCustomName(), EASEL_ID)) {</span>
+<span class="nc" id="L343">                        entityRef = new WeakReference&lt;&gt;((T) e);</span>
+<span class="nc" id="L344">                        return entityRef.get();</span>
+                    }
+                }
+<span class="nc" id="L347">            }</span>
+<span class="nc" id="L348">            return null;</span>
+        }
+
+        T get() {
+<span class="nc" id="L352">            return get(getNearbyEntities());</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PlayerDismountListener.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Listeners</a> &gt; <span class="el_source">PlayerDismountListener.java</span></div><h1>PlayerDismountListener.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Listeners;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.Painting.ArtSession;
+
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.spigotmc.event.entity.EntityDismountEvent;
+
+<span class="nc" id="L16">public class PlayerDismountListener implements RegisteredListener {</span>
+
+    @EventHandler
+    public void onPlayerDismount(EntityDismountEvent event) {
+
+<span class="nc bnc" id="L21" title="All 2 branches missed.">        if (event.getEntity().getType() != EntityType.PLAYER) {</span>
+<span class="nc" id="L22">            return;</span>
+        }
+<span class="nc" id="L24">        Player player = (Player) event.getEntity();</span>
+<span class="nc bnc" id="L25" title="All 2 branches missed.">        if (ArtMap.instance().getArtistHandler().containsPlayer(player)) {</span>
+<span class="nc" id="L26">            ArtSession session = ArtMap.instance().getArtistHandler().getCurrentSession(player);</span>
+            try {
+                //[#292] don't dismount players that painted within the last second
+<span class="nc bnc" id="L29" title="All 2 branches missed.">                if(session.lastPaintActionWithin(1, TimeUnit.SECONDS)) {</span>
+<span class="nc" id="L30">                    event.setCancelled(true);</span>
+<span class="nc" id="L31">                    return;</span>
+                }
+<span class="nc" id="L33">                ArtMap.instance().getArtistHandler().removePlayer(player);</span>
+<span class="nc" id="L34">            } catch (SQLException | IOException e) {</span>
+<span class="nc" id="L35">                ArtMap.instance().getLogger().log(Level.SEVERE, &quot;Database error!&quot;, e);</span>
+<span class="nc" id="L36">                player.sendMessage(&quot;Error Saving Artwork check logs.&quot;);</span>
+<span class="nc" id="L37">            }</span>
+        }
+<span class="nc" id="L39">    }</span>
+
+    @Override
+    public void unregister() {
+<span class="nc" id="L43">        EntityDismountEvent.getHandlerList().unregister(this);</span>
+<span class="nc" id="L44">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

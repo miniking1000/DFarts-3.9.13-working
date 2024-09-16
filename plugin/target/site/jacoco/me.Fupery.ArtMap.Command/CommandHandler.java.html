@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CommandHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Command</a> &gt; <span class="el_source">CommandHandler.java</span></div><h1>CommandHandler.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Command;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Optional;
+import java.util.logging.Level;
+
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.MapMeta;
+import org.bukkit.map.MapCanvas;
+import org.bukkit.map.MapRenderer;
+import org.bukkit.map.MapView;
+import org.bukkit.map.MapView.Scale;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.api.Config.Lang;
+import me.Fupery.ArtMap.Event.PlayerOpenMenuEvent;
+import me.Fupery.ArtMap.IO.MapArt;
+import me.Fupery.ArtMap.Menu.Handler.MenuHandler;
+import me.Fupery.ArtMap.Recipe.ArtItem;
+import me.Fupery.ArtMap.Recipe.ArtMaterial;
+import me.Fupery.ArtMap.Utils.ItemUtils;
+
+public class CommandHandler implements CommandExecutor {
+
+    private final HashMap&lt;String, AsyncCommand&gt; commands;
+
+<span class="nc" id="L34">    public CommandHandler() {</span>
+<span class="nc" id="L35">        commands = new HashMap&lt;&gt;();</span>
+        //Commands go here - note that they are run on an async thread
+
+<span class="nc" id="L38">		commands.put(&quot;save&quot;, new CommandSave());</span>
+
+<span class="nc" id="L40">		commands.put(&quot;clear&quot;, new CommandClear());</span>
+
+<span class="nc" id="L42">		commands.put(&quot;delete&quot;, new CommandDelete());</span>
+
+<span class="nc" id="L44">		commands.put(&quot;preview&quot;, new CommandPreview());</span>
+
+<span class="nc" id="L46">		commands.put(&quot;import&quot;, new CommandImport());</span>
+
+<span class="nc" id="L48">		commands.put(&quot;export&quot;, new CommandExport());</span>
+
+<span class="nc" id="L50">		commands.put(&quot;test&quot;, new CommandTest());</span>
+
+<span class="nc" id="L52">		commands.put(&quot;convert&quot;, new CommandConvert());</span>
+
+<span class="nc" id="L54">		commands.put(&quot;repair&quot;, new Repair());</span>
+
+<span class="nc" id="L56">		commands.put(&quot;search&quot;, new Search());</span>
+
+<span class="nc" id="L58">		commands.put(&quot;page&quot;, new Page());</span>
+
+<span class="nc" id="L60">		commands.put(&quot;palette&quot;, new AsyncCommand(&quot;artmap.admin&quot;, &quot;/art palette&quot;, true) {</span>
+			@Override
+			public void runCommand(CommandSender sender, String[] args, ReturnMessage msg) {
+<span class="nc" id="L63">				MapView mapView = Bukkit.getServer().createMap(((Player) sender).getWorld());</span>
+<span class="nc" id="L64">				mapView.getRenderers().clear();</span>
+<span class="nc" id="L65">				mapView.setScale(Scale.CLOSEST);</span>
+<span class="nc" id="L66">				mapView.addRenderer(new MapRenderer() {</span>
+<span class="nc" id="L67">					boolean done = false;</span>
+					@Override
+					public void render(MapView view, MapCanvas canvas, Player player) {
+<span class="nc bnc" id="L70" title="All 2 branches missed.">						if (!done) {</span>
+<span class="nc bnc" id="L71" title="All 2 branches missed.">							for (int y = 0; y &lt; 128; y++) {</span>
+<span class="nc bnc" id="L72" title="All 2 branches missed.">								for (int x = 0; x &lt; 128; x++) {</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">									if (x &lt; 64) {</span>
+<span class="nc" id="L74">										canvas.setPixel(x, y, (byte) (y));</span>
+									} else {
+<span class="nc" id="L76">										canvas.setPixel(x, y, (byte) (y + 128));</span>
+									}
+								}
+							}
+<span class="nc" id="L80">							done = true;</span>
+						}
+<span class="nc" id="L82">					}</span>
+				});
+<span class="nc" id="L84">				ItemStack map = new ItemStack(Material.FILLED_MAP, 1);</span>
+<span class="nc" id="L85">				MapMeta meta = (MapMeta) map.getItemMeta();</span>
+<span class="nc" id="L86">				meta.setMapView(mapView);</span>
+<span class="nc" id="L87">				map.setItemMeta(meta);</span>
+<span class="nc" id="L88">				((Player) sender).getInventory().setItemInMainHand(map);</span>
+<span class="nc" id="L89">			}</span>
+		});
+		
+<span class="nc" id="L92">		commands.put(&quot;give&quot;, new AsyncCommand(&quot;artmap.admin&quot;, &quot;/art give &lt;player&gt; &lt;easel|canvas|paintbrush|unsaved:&lt;id&gt;|artwork:&lt;title&gt;&gt; [amount]&quot;, true) {</span>
+			@Override
+			public void runCommand(CommandSender sender, String[] args, ReturnMessage msg) {
+<span class="nc" id="L95">				Player player = Bukkit.getPlayer(args[1]);</span>
+<span class="nc bnc" id="L96" title="All 2 branches missed.">				if (player != null) {</span>
+<span class="nc" id="L97">					ItemStack item = null;</span>
+<span class="nc bnc" id="L98" title="All 2 branches missed.">					if (args[2].equalsIgnoreCase(&quot;easel&quot;)) {</span>
+<span class="nc" id="L99">						item = ArtMaterial.EASEL.getItem();</span>
+<span class="nc bnc" id="L100" title="All 2 branches missed.">					} else if (args[2].equalsIgnoreCase(&quot;canvas&quot;)) {</span>
+<span class="nc" id="L101">						item = ArtMaterial.CANVAS.getItem();</span>
+<span class="nc bnc" id="L102" title="All 2 branches missed.">					}  else if (args[2].contains(&quot;unsaved:&quot;)) {</span>
+<span class="nc" id="L103">						String[] strings = args[2].split(&quot;:&quot;);</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">						if (strings.length &gt; 1) {</span>
+<span class="nc" id="L105">							int id = Integer.parseInt(strings[1]);</span>
+							try {
+<span class="nc bnc" id="L107" title="All 2 branches missed.">								if(!ArtMap.instance().getArtDatabase().containsUnsavedArtwork(id)) {</span>
+<span class="nc" id="L108">									sender.sendMessage(Lang.PREFIX + ChatColor.RED + &quot;No unsaved artwork with that ID.&quot;);</span>
+<span class="nc" id="L109">									return;</span>
+								}
+<span class="nc" id="L111">								item = new ArtItem.InProgressArtworkItem(id, player.getName()).toItemStack();</span>
+<span class="nc" id="L112">							} catch( Exception e) {</span>
+<span class="nc" id="L113">								sender.sendMessage(Lang.PREFIX + ChatColor.RED + &quot;Error retrieving art! Check logs for details.&quot;);</span>
+<span class="nc" id="L114">								ArtMap.instance().getLogger().log(Level.SEVERE, &quot;Error retrieving art!&quot;, e);</span>
+<span class="nc" id="L115">							}</span>
+						}
+<span class="nc bnc" id="L117" title="All 2 branches missed.">					} else if (args[2].contains(&quot;artwork:&quot;)) {</span>
+<span class="nc" id="L118">						String[] strings = args[2].split(&quot;:&quot;);</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">						if (strings.length &gt; 1) {</span>
+<span class="nc" id="L120">							String title = strings[1];</span>
+							try {
+<span class="nc" id="L122">								Optional&lt;MapArt&gt; art = ArtMap.instance().getArtDatabase().getArtwork(title);</span>
+<span class="nc bnc" id="L123" title="All 2 branches missed.">								if (!art.isPresent()) {</span>
+<span class="nc" id="L124">									sender.sendMessage(Lang.PREFIX + ChatColor.RED + String.format(Lang.MAP_NOT_FOUND.get(), title));</span>
+<span class="nc" id="L125">									return;</span>
+								}
+<span class="nc" id="L127">								item = art.get().getMapItem();</span>
+<span class="nc" id="L128">							} catch( Exception e) {</span>
+<span class="nc" id="L129">								sender.sendMessage(Lang.PREFIX + ChatColor.RED + &quot;Error retrieving art! Check logs for details.&quot;);</span>
+<span class="nc" id="L130">								ArtMap.instance().getLogger().log(Level.SEVERE, &quot;Error retrieving art!&quot;, e);</span>
+<span class="nc" id="L131">							}</span>
+						}
+					}
+<span class="nc bnc" id="L134" title="All 2 branches missed.">					if (item == null) {</span>
+<span class="nc" id="L135">						sender.sendMessage(Lang.PREFIX + ChatColor.RED + this.usage);</span>
+<span class="nc" id="L136">						return;</span>
+					}
+<span class="nc bnc" id="L138" title="All 2 branches missed.">					if (args.length &gt; 3) {</span>
+<span class="nc" id="L139">						int amount = Integer.parseInt(args[3]);</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">						if (amount &gt; 1)</span>
+<span class="nc" id="L141">							item.setAmount(amount);</span>
+					}
+<span class="nc" id="L143">					ItemStack finalItem = item;</span>
+<span class="nc" id="L144">					ArtMap.instance().getScheduler().SYNC.run(() -&gt; ItemUtils.giveItem(player, finalItem));</span>
+<span class="nc" id="L145">					return;</span>
+				}
+<span class="nc" id="L147">				sender.sendMessage(Lang.PREFIX + ChatColor.RED + String.format(Lang.PLAYER_NOT_FOUND.get(), args[1]));</span>
+<span class="nc" id="L148">			}</span>
+		});
+
+        //convenience commands
+<span class="nc" id="L152">		commands.put(&quot;help&quot;, new AsyncCommand(&quot;artmap.menu&quot;, &quot;/art [help]&quot;, true) {</span>
+            @Override
+            public void runCommand(CommandSender sender, String[] args, ReturnMessage msg) {
+<span class="nc bnc" id="L155" title="All 2 branches missed.">                if (sender instanceof Player) {</span>
+<span class="nc" id="L156">                    ArtMap.instance().getScheduler().SYNC.run(() -&gt; {</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">                        if (args.length &gt; 0) {</span>
+<span class="nc" id="L158">							Lang.Array.CONSOLE_HELP.send(sender);</span>
+<span class="nc" id="L159">							return;</span>
+                        }
+<span class="nc" id="L161">                        PlayerOpenMenuEvent event = new PlayerOpenMenuEvent((Player) sender);</span>
+<span class="nc" id="L162">                        Bukkit.getServer().getPluginManager().callEvent(event);</span>
+<span class="nc" id="L163">                        MenuHandler menuHandler = ArtMap.instance().getMenuHandler();</span>
+<span class="nc" id="L164">                        menuHandler.openMenu(((Player) sender), menuHandler.MENU.HELP.get(((Player) sender)));</span>
+<span class="nc" id="L165">                    });</span>
+                } else {
+<span class="nc" id="L167">                    Lang.Array.CONSOLE_HELP.send(sender);</span>
+                }
+<span class="nc" id="L169">            }</span>
+        });
+<span class="nc" id="L171">    }</span>
+
+    @Override
+    public boolean onCommand(CommandSender sender, org.bukkit.command.Command command, String label, String[] args) {
+		// handle quoted arguements since spigot does not
+<span class="nc" id="L176">		String[] fixedArgs = fixQuotedArgs(args);</span>
+
+<span class="nc bnc" id="L178" title="All 2 branches missed.">		if (fixedArgs.length &gt; 0) {</span>
+
+<span class="nc bnc" id="L180" title="All 2 branches missed.">			if (commands.containsKey(fixedArgs[0].toLowerCase())) {</span>
+<span class="nc" id="L181">				commands.get(fixedArgs[0].toLowerCase()).runPlayerCommand(sender, fixedArgs);</span>
+            } else {
+<span class="nc" id="L183">                Lang.HELP.send(sender);</span>
+            }
+
+        } else {
+<span class="nc" id="L187">			commands.get(&quot;help&quot;).runPlayerCommand(sender, fixedArgs);</span>
+        }
+<span class="nc" id="L189">        return true;</span>
+    }
+
+	/**
+	 * Combines &quot;&quot; arguments.
+	 * 
+	 * @param args The original args.
+	 * @return The combined args.
+	 */
+	public static String[] fixQuotedArgs(String[] args) {
+<span class="fc" id="L199">		ArrayList&lt;String&gt; newArgs = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L200">		String combined = null;</span>
+<span class="fc bfc" id="L201" title="All 2 branches covered.">		for (String arg : args) {</span>
+			// handle quoted single word
+<span class="fc bfc" id="L203" title="All 4 branches covered.">			if (arg.startsWith(&quot;\&quot;&quot;) &amp;&amp; arg.endsWith(&quot;\&quot;&quot;)) {</span>
+<span class="fc" id="L204">				newArgs.add(arg.replace(&quot;\&quot;&quot;, &quot;&quot;));</span>
+<span class="fc" id="L205">				continue;</span>
+			}
+
+			// start combine
+<span class="fc bfc" id="L209" title="All 4 branches covered.">			if (combined == null &amp;&amp; arg.contains(&quot;\&quot;&quot;)) {</span>
+<span class="fc" id="L210">				combined = arg.replace(&quot;\&quot;&quot;, &quot;&quot;);</span>
+<span class="fc" id="L211">				continue;</span>
+			}
+			// end combine
+<span class="pc bpc" id="L214" title="1 of 4 branches missed.">			if (combined != null &amp;&amp; arg.contains(&quot;\&quot;&quot;)) {</span>
+<span class="fc" id="L215">				combined += &quot; &quot; + arg.replace(&quot;\&quot;&quot;, &quot;&quot;);</span>
+<span class="fc" id="L216">				newArgs.add(combined);</span>
+<span class="fc" id="L217">				combined = null;</span>
+<span class="fc" id="L218">				continue;</span>
+			}
+
+			// add to combined if its not null otherwise its a lone arg
+<span class="pc bpc" id="L222" title="1 of 2 branches missed.">			if (combined != null) {</span>
+<span class="nc" id="L223">				combined += &quot; &quot; + arg;</span>
+			} else {
+<span class="fc" id="L225">				newArgs.add(arg);</span>
+			}
+		}
+<span class="fc" id="L228">		return newArgs.toArray(new String[0]);</span>
+	}
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

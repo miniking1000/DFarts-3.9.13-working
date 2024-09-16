@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>CommandDelete.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Command</a> &gt; <span class="el_source">CommandDelete.java</span></div><h1>CommandDelete.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Command;
+
+import java.util.Optional;
+import java.util.logging.Level;
+
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.api.Config.Lang;
+import me.Fupery.ArtMap.IO.MapArt;
+
+class CommandDelete extends AsyncCommand {
+
+    CommandDelete() {
+<span class="nc" id="L16">		super(null, &quot;/art delete &lt;title&gt;&quot;, true);</span>
+<span class="nc" id="L17">    }</span>
+
+    @Override
+    public void runCommand(CommandSender sender, String[] args, ReturnMessage msg) {
+<span class="nc bnc" id="L21" title="All 2 branches missed.">		if (ArtMap.instance().getConfiguration().FORCE_GUI) {</span>
+<span class="nc" id="L22">			sender.sendMessage(&quot;Please use the Paint Brush to access the artwork for delete.&quot;);</span>
+<span class="nc" id="L23">			return;</span>
+		}
+        try {
+<span class="nc" id="L26">            Optional&lt;MapArt&gt; art = ArtMap.instance().getArtDatabase().getArtwork(args[1]);</span>
+
+<span class="nc bnc" id="L28" title="All 2 branches missed.">            if (!art.isPresent()) {</span>
+<span class="nc" id="L29">                msg.message = String.format(Lang.MAP_NOT_FOUND.get(), args[1]);</span>
+<span class="nc" id="L30">                return;</span>
+            }
+<span class="nc bnc" id="L32" title="All 2 branches missed.">            if (sender instanceof Player</span>
+<span class="nc bnc" id="L33" title="All 2 branches missed.">                    &amp;&amp; !(art.get().getArtistPlayer().getUniqueId().equals(((Player) sender).getUniqueId())</span>
+<span class="nc bnc" id="L34" title="All 2 branches missed.">                    || sender.hasPermission(&quot;artmap.admin&quot;))) {</span>
+<span class="nc" id="L35">                msg.message = Lang.NO_PERM.get();</span>
+<span class="nc" id="L36">                return;</span>
+            }
+<span class="nc" id="L38">            ArtMap.instance().getArtDatabase().deleteArtwork(art.get());</span>
+<span class="nc" id="L39">            msg.message = String.format(Lang.DELETED.get(), args[1]);</span>
+<span class="nc" id="L40">        } catch(Exception e) {</span>
+<span class="nc" id="L41">            sender.sendMessage(&quot;Failure deleting art! Check logs for details.&quot;);</span>
+<span class="nc" id="L42">            ArtMap.instance().getLogger().log(Level.SEVERE, &quot;Failure deleting art!&quot;, e);</span>
+<span class="nc" id="L43">        } </span>
+<span class="nc" id="L44">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

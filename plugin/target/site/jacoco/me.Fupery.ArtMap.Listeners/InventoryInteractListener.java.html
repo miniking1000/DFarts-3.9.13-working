@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>InventoryInteractListener.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.Listeners</a> &gt; <span class="el_source">InventoryInteractListener.java</span></div><h1>InventoryInteractListener.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.Listeners;
+
+import org.bukkit.GameMode;
+import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.inventory.ItemStack;
+
+import me.Fupery.ArtMap.ArtMap;
+import me.Fupery.ArtMap.Recipe.ArtItem;
+import me.Fupery.ArtMap.Utils.ItemUtils;
+
+<span class="nc" id="L18">class InventoryInteractListener implements RegisteredListener {</span>
+
+    @EventHandler
+    public void onPlayerItemHeld(PlayerItemHeldEvent event) {
+<span class="nc" id="L22">        checkPreviewing(event.getPlayer(), event);</span>
+<span class="nc" id="L23">    }</span>
+
+
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent event) {
+<span class="nc" id="L28">        checkPreviewing((Player) event.getWhoClicked(), event);</span>
+<span class="nc" id="L29">        checkArtKitPagination(((Player) event.getWhoClicked()), event.getCurrentItem(), event);</span>
+        
+        //prevent Artkit items from going into inventories they shouldn't like
+        //ender chest and crafting table but allow it in creative mode
+<span class="nc bnc" id="L33" title="All 2 branches missed.">        if( event.getWhoClicked().getGameMode() != GameMode.CREATIVE &amp;&amp;</span>
+<span class="nc bnc" id="L34" title="All 2 branches missed.">            event.getInventory().getType() != InventoryType.PLAYER &amp;&amp; </span>
+<span class="nc bnc" id="L35" title="All 2 branches missed.">            event.getInventory().getType() != InventoryType.CRAFTING &amp;&amp;</span>
+<span class="nc bnc" id="L36" title="All 2 branches missed.">            event.getInventory().getType() != InventoryType.CREATIVE) {</span>
+<span class="nc bnc" id="L37" title="All 2 branches missed.">            if(isKitDrop((Player) event.getWhoClicked(), event.getCurrentItem())) {</span>
+<span class="nc" id="L38">                event.setCancelled(true);</span>
+            }
+        }
+        // lock armor slots while at the easel
+<span class="nc bnc" id="L42" title="All 2 branches missed.">		else if (ArtMap.instance().getConfiguration().FORCE_ART_KIT &amp;&amp; </span>
+<span class="nc bnc" id="L43" title="All 2 branches missed.">            event.getWhoClicked().hasPermission(&quot;artmap.artkit&quot;) &amp;&amp;</span>
+<span class="nc bnc" id="L44" title="All 2 branches missed.">			ArtMap.instance().getArtistHandler().getCurrentSession((Player) event.getWhoClicked()) != null &amp;&amp;</span>
+<span class="nc bnc" id="L45" title="All 2 branches missed.">			ArtMap.instance().getArtistHandler().getCurrentSession((Player) event.getWhoClicked()).isInArtKit() &amp;&amp;</span>
+<span class="nc bnc" id="L46" title="All 2 branches missed.">			event.getSlotType() == InventoryType.SlotType.ARMOR){</span>
+<span class="nc" id="L47">			event.setCancelled(true);</span>
+		}
+<span class="nc" id="L49">    }</span>
+
+    @EventHandler
+    public void onPlayerDropItem(PlayerDropItemEvent event) {
+        //end preview if they were dropping items in preview
+<span class="nc bnc" id="L54" title="All 2 branches missed.">        if (ArtMap.instance().getPreviewManager().endPreview(event.getPlayer())) {</span>
+<span class="nc" id="L55">            event.setCancelled(true);</span>
+        }
+
+        //no throwing artkit items
+<span class="nc bnc" id="L59" title="All 2 branches missed.">        if (ArtMap.instance().getArtistHandler().getCurrentSession(event.getPlayer()) != null) {</span>
+<span class="nc bnc" id="L60" title="All 2 branches missed.">            if (ArtMap.instance().getArtistHandler().getCurrentSession(event.getPlayer()).isInArtKit()) {</span>
+<span class="nc" id="L61">                event.setCancelled(true);</span>
+            }
+        }
+
+        //no throwing artkit items really I mean it
+<span class="nc bnc" id="L66" title="All 2 branches missed.">        if (isKitDrop(event.getPlayer(), event.getItemDrop().getItemStack())) {</span>
+<span class="nc" id="L67">            event.setCancelled(true);</span>
+        }
+<span class="nc" id="L69">    }</span>
+
+
+    @EventHandler
+    public void onPlayerPickup(EntityPickupItemEvent e) {
+<span class="nc bnc" id="L74" title="All 2 branches missed.">        if(e.getEntity() instanceof Player) {</span>
+<span class="nc" id="L75">            Player player = (Player) e.getEntity();</span>
+<span class="nc bnc" id="L76" title="All 2 branches missed.">            if (ArtMap.instance().getArtistHandler().getCurrentSession(player) != null) {</span>
+<span class="nc bnc" id="L77" title="All 2 branches missed.">                if (ArtMap.instance().getArtistHandler().getCurrentSession(player).isInArtKit()) {</span>
+<span class="nc" id="L78">                    e.setCancelled(true);</span>
+                }
+            }
+        }
+<span class="nc" id="L82">    }</span>
+
+    private void checkPreviewing(Player player, Cancellable event) {
+<span class="nc bnc" id="L85" title="All 2 branches missed.">        if (ArtMap.instance().getPreviewManager().endPreview(player)) {</span>
+<span class="nc" id="L86">            event.setCancelled(true);</span>
+        }
+<span class="nc" id="L88">    }</span>
+
+	private void checkArtKitPagination(Player player, ItemStack itemStack, Cancellable event) {
+<span class="nc bnc" id="L91" title="All 2 branches missed.">		if (ArtMap.instance().getArtistHandler().containsPlayer(player)) {</span>
+<span class="nc bnc" id="L92" title="All 2 branches missed.">			if (ItemUtils.hasKey(itemStack, &quot;Artkit:Next&quot;)) {</span>
+<span class="nc" id="L93">				event.setCancelled(true);</span>
+<span class="nc" id="L94">				ArtMap.instance().getArtistHandler().getCurrentSession(player).nextKitPage(player);</span>
+			}
+<span class="nc bnc" id="L96" title="All 2 branches missed.">			if (ItemUtils.hasKey(itemStack, &quot;Artkit:Back&quot;)) {</span>
+<span class="nc" id="L97">				event.setCancelled(true);</span>
+<span class="nc" id="L98">				ArtMap.instance().getArtistHandler().getCurrentSession(player).prevKitPage(player);</span>
+			}
+		}
+<span class="nc" id="L101">	}</span>
+
+    private boolean isKitDrop(Player player, ItemStack itemStack) {
+<span class="nc bnc" id="L104" title="All 2 branches missed.">        if (ArtMap.instance().getArtistHandler().containsPlayer(player)) {</span>
+<span class="nc bnc" id="L105" title="All 4 branches missed.">			if (ItemUtils.hasKey(itemStack, ArtItem.KIT_KEY) || ItemUtils.hasKey(itemStack, &quot;Artkit:Next&quot;)</span>
+<span class="nc bnc" id="L106" title="All 2 branches missed.">					|| ItemUtils.hasKey(itemStack, &quot;Artkit:Back&quot;)) {</span>
+<span class="nc" id="L107">				return true;</span>
+			}
+        }
+<span class="nc" id="L110">        return false;</span>
+    }
+
+    @Override
+    public void unregister() {
+<span class="nc" id="L115">        PlayerItemHeldEvent.getHandlerList().unregister(this);</span>
+<span class="nc" id="L116">        InventoryClickEvent.getHandlerList().unregister(this);</span>
+<span class="nc" id="L117">        PlayerDropItemEvent.getHandlerList().unregister(this);</span>
+<span class="nc" id="L118">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

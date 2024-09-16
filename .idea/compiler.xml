@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="SabreFactions" />
+        <module name="Spigot_1_13" />
+        <module name="ArtMap-api" />
+        <module name="Essentials" />
+        <module name="MarriageMaster" />
+        <module name="Towny" />
+        <module name="GriefDefender" />
+        <module name="RedProtect" />
+        <module name="Spigot_1_16" />
+        <module name="Spigot_1_14" />
+        <module name="DataTables" />
+        <module name="CMI" />
+        <module name="Spigot_1_18" />
+        <module name="WorldGuard" />
+        <module name="PlotSquared4" />
+        <module name="PlotSquared5" />
+        <module name="Factions" />
+        <module name="USkyBlock" />
+        <module name="ASkyBlock" />
+        <module name="Residence" />
+        <module name="BentoBox" />
+        <module name="GriefPrevention" />
+        <module name="PlotSquared6" />
+        <module name="ArtMap" />
+        <module name="PlotSquared7" />
+        <module name="Spigot_1_20_2" />
+      </profile>
+    </annotationProcessing>
+  </component>
+</project>

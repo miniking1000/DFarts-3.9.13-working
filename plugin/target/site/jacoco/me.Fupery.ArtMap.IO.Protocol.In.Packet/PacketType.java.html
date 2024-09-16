@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PacketType.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">ArtMap</a> &gt; <a href="index.source.html" class="el_package">me.Fupery.ArtMap.IO.Protocol.In.Packet</a> &gt; <span class="el_source">PacketType.java</span></div><h1>PacketType.java</h1><pre class="source lang-java linenums">package me.Fupery.ArtMap.IO.Protocol.In.Packet;
+
+import org.bukkit.Bukkit;
+
+<span class="nc" id="L5">public enum PacketType {</span>
+<span class="nc" id="L6">    LOOK(&quot;PacketPlayInFlying.PacketPlayInLook&quot;),</span>
+<span class="nc" id="L7">    ARM_ANIMATION(&quot;PacketPlayInArmAnimation&quot;),</span>
+<span class="nc" id="L8">    INTERACT(&quot;PacketPlayInUseEntity&quot;),</span>
+<span class="nc" id="L9">    INVALID(null);</span>
+
+    private final String className;
+
+<span class="nc" id="L13">    PacketType(String className) {</span>
+<span class="nc" id="L14">        String server = Bukkit.getServer().getClass().getPackage().getName();</span>
+<span class="nc" id="L15">        String prefix = server.replace(&quot;org.bukkit.craftbukkit&quot;, &quot;net.minecraft.server&quot;);</span>
+<span class="nc" id="L16">        this.className = prefix + &quot;.&quot; + className;</span>
+<span class="nc" id="L17">    }</span>
+
+    public static PacketType getPacketType(Object packet) {
+<span class="nc" id="L20">        String packetClassName = packet.getClass().getCanonicalName();</span>
+
+<span class="nc bnc" id="L22" title="All 2 branches missed.">        for (PacketType type : PacketType.values()) {</span>
+
+<span class="nc bnc" id="L24" title="All 2 branches missed.">            if (packetClassName.equals(type.className)) {</span>
+<span class="nc" id="L25">                return type;</span>
+            }
+        }
+<span class="nc" id="L28">        return INVALID;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>
